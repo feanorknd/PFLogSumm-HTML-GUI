@@ -75,11 +75,11 @@ REPORTDATE=$(date '+%Y-%m-%d %H:%M:%S')
 CURRENTYEAR=$(date +'%Y')
 CURRENTMONTH=$(date +'%b')
 CURRENTDAY=$(date +"%d")
-TMPFOLDER="$HTMLOUTPUTDIR/data/.temp"
+TMPFOLDER="$HTMLOUTPUTDIR/.temp"
 
 #Create the temp Directory if it does not exist
-if [ ! -d $TMPFOLDER ]; then
-  mkdir $TMPFOLDER;
+if [ ! -d ${TMPFOLDER} ]; then
+  mkdir ${TMPFOLDER};
 fi
 
 $PFLOGSUMMBIN $PFLOGSUMMOPTIONS  -e $LOGFILELOCATION > ${TMPFOLDER}/mailreport
@@ -1382,113 +1382,111 @@ sed -i "s/##RecipientHostsDomainsEmail##/$RecipientHostsDomainsEmail/g" $HTMLOUT
 #======================================================
 # Replace Placeholders with values - Table PerDayTrafficSummaryTable
 #======================================================
-sed -i '/##PerDayTrafficSummaryTable##/ {
+sed -i "/##PerDayTrafficSummaryTable##/ {
 r ${TMPFOLDER}/PerDayTrafficSummary
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 
 #======================================================
 # Replace Placeholders with values - Table PerHourTrafficDailyAverageTable
 #======================================================
-sed -i '/##PerHourTrafficDailyAverageTable##/ {
+sed -i "/##PerHourTrafficDailyAverageTable##/ {
 r ${TMPFOLDER}/PerHourTrafficDailyAverage
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 
 #======================================================
 # Replace Placeholders with values - Table HostDomainSummaryMessageDelivery
 #======================================================
-sed -i '/##HostDomainSummaryMessageDelivery##/ {
+sed -i "/##HostDomainSummaryMessageDelivery##/ {
 r ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table HostDomainSummaryMessagesReceived
 #======================================================
-sed -i '/##HostDomainSummaryMessagesReceived##/ {
+sed -i "/##HostDomainSummaryMessagesReceived##/ {
 r ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table Sendersbymessagecount
 #======================================================
-sed -i '/##Sendersbymessagecount##/ {
+sed -i "/##Sendersbymessagecount##/ {
 r ${TMPFOLDER}/Sendersbymessagecount
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table RecipientsbyMessageCount
 #======================================================
-sed -i '/##RecipientsbyMessageCount##/ {
+sed -i "/##RecipientsbyMessageCount##/ {
 r ${TMPFOLDER}/Recipientsbymessagecount
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table SendersbyMessageSize
 #======================================================
-sed -i '/##SendersbyMessageSize##/ {
+sed -i "/##SendersbyMessageSize##/ {
 r ${TMPFOLDER}/Sendersbymessagesize
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table Recipientsbymessagesize
 #======================================================
-sed -i '/##Recipientsbymessagesize##/ {
+sed -i "/##Recipientsbymessagesize##/ {
 r ${TMPFOLDER}/Recipientsbymessagesize
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table Messageswithnosizedata
 #======================================================
-sed -i '/##Messageswithnosizedata##/ {
+sed -i "/##Messageswithnosizedata##/ {
 r ${TMPFOLDER}/Messageswithnosizedata
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 
 #======================================================
 # Replace Placeholders with values -  MessageDeferralDetail
 #======================================================
-sed -i '/##MessageDeferralDetail##/ {
+sed -i "/##MessageDeferralDetail##/ {
 r ${TMPFOLDER}/messagedeferraldetail
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values -  MessageBounceDetailbyrelay
 #======================================================
-sed -i '/##MessageBounceDetailbyrelay##/ {
+sed -i "/##MessageBounceDetailbyrelay##/ {
 r ${TMPFOLDER}/messagebouncedetaibyrelay
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 
 #======================================================
 # Replace Placeholders with values - warnings
 #======================================================
-sed -i '/##MailWarnings##/ {
+sed -i "/##MailWarnings##/ {
 r ${TMPFOLDER}/warnings
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 
 #======================================================
 # Replace Placeholders with values - FatalErrors
 #======================================================
-sed -i '/##MailFatalErrors##/ {
+sed -i "/##MailFatalErrors##/ {
 r ${TMPFOLDER}/FatalErrors
 d
-}' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
-
-
+}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 
 
@@ -1598,4 +1596,4 @@ done
 # Clean UP
 #======================================================
 
-rm -Rf $TMPFOLDER
+rm -Rf ${TMPFOLDER}
