@@ -62,7 +62,7 @@ CURRENTMONTH=$(date --date 'yesterday' +'%b')
 CURRENTDAY=$(date --date 'yesterday' +"%d")
 
 #RAW LOGS Output
-RAWDIR="${HTMLOUTPUTDIR}/reports/${CURRENTYEAR}/${CURRENTMONTH}/${CURRENTDAY}"
+RAWDIR="${HTMLOUTPUTDIR}/data/reports/${CURRENTYEAR}/${CURRENTMONTH}/${CURRENTDAY}"
 
 #Create the RAW LOGS folder always
 mkdir -p ${RAWDIR};
