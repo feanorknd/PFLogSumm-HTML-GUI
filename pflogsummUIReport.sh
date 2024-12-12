@@ -38,8 +38,8 @@ PFSYSCONFDIR="/home/postfix"
 LOGFILELOCATION="/var/log/mail.log"
 
 ##  pflogsumm details
-PFLOGSUMMOPTIONS=" --verbose_msg_detail --zero_fill --no-no-msg-size"
-PFLOGSUMMBIN="/usr/sbin/pflogsumm  "
+PFLOGSUMMOPTIONS=" --verbose_msg_detail --zero_fill "
+PFLOGSUMMBIN="/usr/sbin/pflogsumm "
 
 ##  HTML Output
 HTMLOUTPUTDIR="/home/postfix/www/"
@@ -81,7 +81,7 @@ sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p
 sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
 sed -n '/^Recipients by message count/,/^Senders by message size/p;/^Senders by message size/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagecount
 sed -n '/^Senders by message size/,/^Recipients by message size/p;/^Recipients by message size/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagesize
-sed -n '/^Recipients by message size/,/^message deferral detail/p;/^message deferral detail/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagesize
+sed -n -r '/^Recipients by message size/,/^(Messages with no size data|message deferral detail)/p;/^(Messages with no size data|message deferral detail)/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagesize
 sed -n '/^Messages with no size data/,/^message deferral detail/p;/^message deferral detail/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Messageswithnosizedata
 sed -n '/^message deferral detail/,/^message bounce detail (by relay)/p;/^message bounce detail (by relay)/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagedeferraldetail
 sed -n '/^message bounce detail (by relay)/,/^message reject detail/p;/^message reject detail/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagebouncedetaibyrelay
