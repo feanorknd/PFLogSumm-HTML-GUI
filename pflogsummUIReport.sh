@@ -88,10 +88,10 @@ $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -e $LOGFILELOCATION > ${TMPFOLDER}/maillastdays
 
 #Extract from last days PFLOGSUMM
 sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${TMPFOLDER}/maillastdays | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerDayTrafficSummary
-sed -n '/^Per-Hour Traffic Daily Average/,/^Host\//p;/^Host\//q' ${TMPFOLDER}/maillastdays | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficDailyAverage
 
 #Extract from today PFLOGSUMM
 sed -n '/^Grand Totals/,/^Per-Hour/p;/^Per-Hour/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
+sed -n '/^Per-Hour Traffic Summary/,/^Host\//p;/^Host\//q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficSummary
 sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p;/^Senders by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
@@ -143,17 +143,17 @@ done < ${TMPFOLDER}/PerDayTrafficSummary
 $MOVEF  ${TMPFOLDER}/PerDayTrafficSummary_tmp ${TMPFOLDER}/PerDayTrafficSummary &> /dev/null
 
 #======================================================
-# Extract Information into variable -> Per-Hour Traffic Daily Average
+# Extract Information into variable -> Per-Hour Traffic Summary
 #======================================================
 while IFS= read -r var
 do
-    PerHourTrafficDailyAverageTable=""
-    PerHourTrafficDailyAverageTable+="<tr>"
-    PerHourTrafficDailyAverageTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>""<td>"$3"</td>""<td>"$4"</td>""<td>"$5"</td>""<td>"$6"</td>"}')
-    PerHourTrafficDailyAverageTable+="</tr>"
-    echo $PerHourTrafficDailyAverageTable >> ${TMPFOLDER}/PerHourTrafficDailyAverage_tmp
-done < ${TMPFOLDER}/PerHourTrafficDailyAverage
-$MOVEF ${TMPFOLDER}/PerHourTrafficDailyAverage_tmp ${TMPFOLDER}/PerHourTrafficDailyAverage &> /dev/null
+    PerHourTrafficSummaryTable=""
+    PerHourTrafficSummaryTable+="<tr>"
+    PerHourTrafficSummaryTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>""<td>"$3"</td>""<td>"$4"</td>""<td>"$5"</td>""<td>"$6"</td>"}')
+    PerHourTrafficSummaryTable+="</tr>"
+    echo $PerHourTrafficSummaryTable >> ${TMPFOLDER}/PerHourTrafficSummary_tmp
+done < ${TMPFOLDER}/PerHourTrafficSummary
+$MOVEF ${TMPFOLDER}/PerHourTrafficSummary_tmp ${TMPFOLDER}/PerHourTrafficSummary &> /dev/null
 
 
 #======================================================
@@ -892,7 +892,7 @@ cat > $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLRE
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        <div id="PerHourTrafficDailyAverageTableGraph" style="width: auto; height: 400px;"></div>
+                        <div id="PerHourTrafficSummaryTableGraph" style="width: auto; height: 400px;"></div>
                     </div>
                 </div>
             </div>
@@ -929,14 +929,14 @@ cat > $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLRE
         </div>
 
         <div class="my-3 p-3 bg-white rounded shadow-sm">
-            <a data-toggle="collapse" href="#PerHourTrafficDailyAverage" role="button" aria-expanded="false"
-                aria-controls="PerHourTrafficDailyAverage">
+            <a data-toggle="collapse" href="#PerHourTrafficSummary" role="button" aria-expanded="false"
+                aria-controls="PerHourTrafficSummary">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Per-Hour Traffic Daily Average</h6>
             </a>
-            <div class="container collapse" id="PerHourTrafficDailyAverage">
+            <div class="container collapse" id="PerHourTrafficSummary">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="table-responsive" id="PerHourTrafficDailyAverageTable">
+                        <div class="table-responsive" id="PerHourTrafficSummaryTable">
                             <table class="table-responsive table-striped table-sm">
                                 <thead>
                                     <tr>
@@ -949,7 +949,7 @@ cat > $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLRE
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ##PerHourTrafficDailyAverageTable##
+                                    ##PerHourTrafficSummaryTable##
                                 </tbody>
                             </table>
                         </div>
@@ -1308,15 +1308,15 @@ cat > $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLRE
         });
 
 
-        Highcharts.chart('PerHourTrafficDailyAverageTableGraph', {
+        Highcharts.chart('PerHourTrafficSummaryTableGraph', {
             data: {
-                table: 'PerHourTrafficDailyAverageTable'
+                table: 'PerHourTrafficSummaryTable'
             },
             chart: {
                 type: 'line'
             },
             title: {
-                text: 'Per-Hour Traffic Daily Average'
+                text: 'Per-Hour Traffic Summary'
             },
             yAxis: {
                 allowDecimals: false,
@@ -1392,10 +1392,10 @@ d
 
 
 #======================================================
-# Replace Placeholders with values - Table PerHourTrafficDailyAverageTable
+# Replace Placeholders with values - Table PerHourTrafficSummaryTable
 #======================================================
-sed -i "/##PerHourTrafficDailyAverageTable##/ {
-r ${TMPFOLDER}/PerHourTrafficDailyAverage
+sed -i "/##PerHourTrafficSummaryTable##/ {
+r ${TMPFOLDER}/PerHourTrafficSummary
 d
 }" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
