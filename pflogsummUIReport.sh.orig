@@ -82,16 +82,13 @@ if [ ! -d ${TMPFOLDER} ]; then
   mkdir ${TMPFOLDER};
 fi
 
-$PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d today -e $LOGFILELOCATION > ${TMPFOLDER}/mailreport
-$PFLOGSUMMBIN $PFLOGSUMMOPTIONS -e $LOGFILELOCATION > ${TMPFOLDER}/maillastdays
+$PFLOGSUMMBIN $PFLOGSUMMOPTIONS  -e $LOGFILELOCATION > ${TMPFOLDER}/mailreport
 
 
-#Extract from last days PFLOGSUMM
-sed -n '/^Grand Totals/,/^Per-Day/p;/^Per-Day/q' ${TMPFOLDER}/maillastdays | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
-sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${TMPFOLDER}/maillastdays | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerDayTrafficSummary
-sed -n '/^Per-Hour Traffic Daily Average/,/^Host\//p;/^Host\//q' ${TMPFOLDER}/maillastdays | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficDailyAverage
-
-#Extract from today PFLOGSUMM
+#Extract Sections from PFLOGSUMM
+sed -n '/^Grand Totals/,/^Per-Day/p;/^Per-Day/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
+sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerDayTrafficSummary
+sed -n '/^Per-Hour Traffic Daily Average/,/^Host\//p;/^Host\//q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficDailyAverage
 sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p;/^Senders by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
