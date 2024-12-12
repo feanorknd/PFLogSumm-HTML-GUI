@@ -32,43 +32,53 @@
 #=====================================================================================================================
 
 #CONFIG FILE LOCATION
-PFSYSCONFDIR="/home/postfix"
+MAINDIR="/home/postfix"
 
-##  Postfix Log Location
+#Postfix Log Location
 LOGFILELOCATION="/var/log/mail.log"
 
-##  pflogsumm details
+#pflogsumm details
 PFLOGSUMMOPTIONS=" --verbose_msg_detail --zero_fill "
 PFLOGSUMMBIN="/usr/sbin/pflogsumm "
 
-##  HTML Output
-HTMLOUTPUTDIR="/home/postfix/www/"
+#HTML Output
+HTMLOUTPUTDIR="${MAINDIR}/www/"
 HTMLOUTPUT_INDEXDASHBOARD="index.html"
 
 #Create the Cache Directory if it does not exist
-if [ ! -d $HTMLOUTPUTDIR/data ]; then
-  mkdir  $HTMLOUTPUTDIR/data;
+DATADIR="${HTMLOUTPUTDIR}/data"
+if [ ! -d ${DATADIR} ]; then
+  mkdir ${DATADIR};
 fi
 
 #TOOLS
 ACTIVEHOSTNAME=$(cat /proc/sys/kernel/hostname)
 MOVEF="/usr/bin/mv -f "
 
-#Temporal Values
+#Temporal Values: values for yesterday (as called while prerotating logs by logrotate.d)
 REPORTDATE=$(date '+%Y-%m-%d %H:%M:%S')
-CURRENTYEAR=$(date +'%Y')
-CURRENTMONTH=$(date +'%b')
-CURRENTDAY=$(date +"%d")
+CURRENTYEAR=$(date --date 'yesterday' +'%Y')
+CURRENTMONTH=$(date --date 'yesterday' +'%b')
+CURRENTDAY=$(date --date 'yesterday' +"%d")
+
+#RAW LOGS Output
+RAWDIR="${MAINDIR}/www/reports/${CURRENTYEAR}/${CURRENTMONTH}/${CURRENTDAY}"
+
+#Create the RAW LOGS folder always
+mkdir -p ${RAWDIR};
+
+#Temp folder
 TMPFOLDER="$HTMLOUTPUTDIR/.temp"
 
 #Create the temp Directory if it does not exist
-if [ ! -d ${TMPFOLDER} ]; then
-  mkdir ${TMPFOLDER};
-fi
+mkdir -p ${TMPFOLDER};
 
-$PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d today -e $LOGFILELOCATION > ${TMPFOLDER}/mailreport
+#Trigger pflogsumm for yesterday logs (as called while prerotating logs by logrotate.d)
+#Used for everything but Per-Day Traffic Summary
+$PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d yesterday -e $LOGFILELOCATION > ${TMPFOLDER}/mailreport
+
+#Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary
 $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -e $LOGFILELOCATION > ${TMPFOLDER}/maillastdays
-
 
 #Extract from last days PFLOGSUMM
 sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${TMPFOLDER}/maillastdays | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerDayTrafficSummary
@@ -659,7 +669,7 @@ HTMLOUTPUTINDEXDASHBOARD
 #======================================================
 #2018-Nov-17.html
 
-cat > $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOARD'
+cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOARD'
 <!doctype html>
 <html lang="en">
 
@@ -715,7 +725,7 @@ cat > $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLRE
                         <div> <strong>Report Date</strong> </div>
                         <div>##REPORTDATE##</div>
                         <div class="spacer15"></div>
-                        <div>This report exposes email addresses of end users / Please password protect this resource</div>
+                        <div>Raw file available in: <a href="${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt">$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt</a></div>
                     </div>
                 </div>
             </div>
@@ -1345,26 +1355,26 @@ HTMLREPORTDASHBOARD
 #======================================================
 # Replace Placeholders with values - GrandTotals
 #======================================================
-sed -i "s/##REPORTDATE##/$REPORTDATE/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##ACTIVEHOSTNAME##/$ACTIVEHOSTNAME/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##ReceivedEmail##/$ReceivedEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##DeliveredEmail##/$DeliveredEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##ForwardedEmail##/$ForwardedEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##DeferredEmailCount##/$DeferredEmailCount/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##DeferredEmailDeferralsCount##/$DeferredEmailDeferralsCount/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##BouncedEmail##/$BouncedEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##RejectedEmailCount##/$RejectedEmailCount/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##RejectedEmailPercentage##/$RejectedEmailPercentage/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##RejectedWarningsEmail##/$RejectedWarningsEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##HeldEmail##/$HeldEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##DiscardedEmailCount##/$DiscardedEmailCount/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##DiscardedEmailPercentage##/$DiscardedEmailPercentage/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##BytesReceivedEmail##/$BytesReceivedEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##BytesDeliveredEmail##/$BytesDeliveredEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##SendersEmail##/$SendersEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##SendingHostsDomainsEmail##/$SendingHostsDomainsEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##RecipientsEmail##/$RecipientsEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-sed -i "s/##RecipientHostsDomainsEmail##/$RecipientHostsDomainsEmail/g" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##REPORTDATE##/$REPORTDATE/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##ACTIVEHOSTNAME##/$ACTIVEHOSTNAME/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##ReceivedEmail##/$ReceivedEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##DeliveredEmail##/$DeliveredEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##ForwardedEmail##/$ForwardedEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##DeferredEmailCount##/$DeferredEmailCount/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##DeferredEmailDeferralsCount##/$DeferredEmailDeferralsCount/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##BouncedEmail##/$BouncedEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##RejectedEmailCount##/$RejectedEmailCount/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##RejectedEmailPercentage##/$RejectedEmailPercentage/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##RejectedWarningsEmail##/$RejectedWarningsEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##HeldEmail##/$HeldEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##DiscardedEmailCount##/$DiscardedEmailCount/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##DiscardedEmailPercentage##/$DiscardedEmailPercentage/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##BytesReceivedEmail##/$BytesReceivedEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##BytesDeliveredEmail##/$BytesDeliveredEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##SendersEmail##/$SendersEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##SendingHostsDomainsEmail##/$SendingHostsDomainsEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##RecipientsEmail##/$RecipientsEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##RecipientHostsDomainsEmail##/$RecipientHostsDomainsEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 #======================================================
 # Replace Placeholders with values - Table PerDayTrafficSummaryTable
@@ -1372,7 +1382,7 @@ sed -i "s/##RecipientHostsDomainsEmail##/$RecipientHostsDomainsEmail/g" $HTMLOUT
 sed -i "/##PerDayTrafficSummaryTable##/ {
 r ${TMPFOLDER}/PerDayTrafficSummary
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 
 #======================================================
@@ -1381,7 +1391,7 @@ d
 sed -i "/##PerHourTrafficSummaryTable##/ {
 r ${TMPFOLDER}/PerHourTrafficSummary
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 
 #======================================================
@@ -1390,7 +1400,7 @@ d
 sed -i "/##HostDomainSummaryMessageDelivery##/ {
 r ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table HostDomainSummaryMessagesReceived
@@ -1398,7 +1408,7 @@ d
 sed -i "/##HostDomainSummaryMessagesReceived##/ {
 r ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table Sendersbymessagecount
@@ -1406,7 +1416,7 @@ d
 sed -i "/##Sendersbymessagecount##/ {
 r ${TMPFOLDER}/Sendersbymessagecount
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table RecipientsbyMessageCount
@@ -1414,7 +1424,7 @@ d
 sed -i "/##RecipientsbyMessageCount##/ {
 r ${TMPFOLDER}/Recipientsbymessagecount
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table SendersbyMessageSize
@@ -1422,7 +1432,7 @@ d
 sed -i "/##SendersbyMessageSize##/ {
 r ${TMPFOLDER}/Sendersbymessagesize
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table Recipientsbymessagesize
@@ -1430,7 +1440,7 @@ d
 sed -i "/##Recipientsbymessagesize##/ {
 r ${TMPFOLDER}/Recipientsbymessagesize
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values - Table Messageswithnosizedata
@@ -1438,7 +1448,7 @@ d
 sed -i "/##Messageswithnosizedata##/ {
 r ${TMPFOLDER}/Messageswithnosizedata
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 
 #======================================================
@@ -1447,7 +1457,7 @@ d
 sed -i "/##MessageDeferralDetail##/ {
 r ${TMPFOLDER}/messagedeferraldetail
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 #======================================================
 # Replace Placeholders with values -  MessageBounceDetailbyrelay
@@ -1455,7 +1465,7 @@ d
 sed -i "/##MessageBounceDetailbyrelay##/ {
 r ${TMPFOLDER}/messagebouncedetaibyrelay
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 
 #======================================================
@@ -1464,7 +1474,7 @@ d
 sed -i "/##MailWarnings##/ {
 r ${TMPFOLDER}/warnings
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
 
 #======================================================
@@ -1473,7 +1483,7 @@ d
 sed -i "/##MailFatalErrors##/ {
 r ${TMPFOLDER}/FatalErrors
 d
-}" $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 
 
@@ -1481,18 +1491,18 @@ d
 #======================================================
 # Count Existing Reports - For Dashboard Display
 #======================================================
-JanRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Jan*.html | wc -l)
-FebRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Feb*.html | wc -l)
-MarRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Mar*.html | wc -l)
-AprRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Apr*.html | wc -l)
-MayRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-May*.html | wc -l)
-JunRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Jun*.html | wc -l)
-JulRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Jul*.html | wc -l)
-AugRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Aug*.html | wc -l)
-SepRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Sep*.html | wc -l)
-OctRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Oct*.html | wc -l)
-NovRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Nov*.html | wc -l)
-DecRPTCount=$(find $HTMLOUTPUTDIR/data  -maxdepth 1 -type f -name $CURRENTYEAR-Dec*.html | wc -l)
+JanRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Jan*.html | wc -l)
+FebRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Feb*.html | wc -l)
+MarRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Mar*.html | wc -l)
+AprRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Apr*.html | wc -l)
+MayRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-May*.html | wc -l)
+JunRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Jun*.html | wc -l)
+JulRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Jul*.html | wc -l)
+AugRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Aug*.html | wc -l)
+SepRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Sep*.html | wc -l)
+OctRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Oct*.html | wc -l)
+NovRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Nov*.html | wc -l)
+DecRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name $CURRENTYEAR-Dec*.html | wc -l)
 
 
 #======================================================
@@ -1520,67 +1530,105 @@ sed -i "s/##ACTIVEHOSTNAME##/$ACTIVEHOSTNAME/g" $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEX
 #======================================================
 
 #Delete Exisitng File Indexs
-rm -fr $HTMLOUTPUTDIR/data/*_rpt.html
+rm -fr $DATADIR/*_rpt.html
 
 #Get List of report files
-for filename in $HTMLOUTPUTDIR/data/*.html; do
+for filename in $DATADIR/*.html; do
     filenameWithExtOnly="${filename##*/}"
     filenameWithoutExtension="${filenameWithExtOnly%.*}"
  
     case $filenameWithExtOnly in
         *Jan* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/jan_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/jan_rpt.html
         ;;
 
         *Feb* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/feb_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/feb_rpt.html
         ;;
 
         *Mar* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/mar_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/mar_rpt.html
         ;;
 
         *Apr* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/apr_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/apr_rpt.html
         ;;
 
         *May* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/may_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/may_rpt.html
         ;;
 
         *Jun* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/jun_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/jun_rpt.html
         ;;                                        
 
         *Jul* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/jul_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/jul_rpt.html
         ;;
 
         *Aug* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/aug_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/aug_rpt.html
         ;;
 
         *Sep* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/sep_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/sep_rpt.html
         ;;
 
         *Oct* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/oct_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/oct_rpt.html
         ;;        
 
         *Nov* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/nov_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/nov_rpt.html
         ;;      
 
         *Dec* )  
-        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $HTMLOUTPUTDIR/data/dec_rpt.html
+        echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/dec_rpt.html
         ;;          
     esac  
 done
 
 
 #======================================================
+# Save Raw log file
+#======================================================
+
+#Store raw file
+mv ${TMPFOLDER}/mailreport ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
+
+
+
+#======================================================
 # Clean UP
 #======================================================
 
-#rm -Rf ${TMPFOLDER}
+#Finally remove temp folder
+rm -Rf ${TMPFOLDER}
+
+#Perform a clean-up of files up to 1 year in RawDir
+find ${RAWDIR}/ -type f -mtime +365 -delete
+
+#Remove empty directories for RawDir
+find ${RAWDIR}/ -type d -empty -delete
+
+#Perform a clean-up of files up to 1 year in DataDir
+find ${DATADIR}/ -type f -name "*.html" -mtime +365 | while read file
+do
+	filename="$(basename "${file}")"
+
+	# Let's find out the index pointing to the file
+	find ${DATADIR} -type f -name "*rpt.html" -exec grep -l "${filename}" {} \; | while read index
+	do
+		sed -i "/${filename}/d" ${index}
+	done
+
+	# Finally remove file
+	rm -f ${file}
+done
+
+
+
+
+
+
+
