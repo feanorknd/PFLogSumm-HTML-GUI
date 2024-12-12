@@ -92,14 +92,7 @@ sed -n '/^Per-Hour Traffic Daily Average/,/^Host\//p;/^Host\//q' ${TMPFOLDER}/ma
 
 #Extract from today PFLOGSUMM
 
-echo "sed -n '/^Grand Totals/,/^Per-Day/p;/^Per-Day/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals"
-
-exit 1
-
-
-
-
-
+sed -n '/^Grand Totals/,/^Per-Hour/p;/^Per-Hour/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals"
 sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p;/^Senders by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
