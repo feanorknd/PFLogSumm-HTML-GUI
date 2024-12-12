@@ -42,7 +42,7 @@ PFLOGSUMMOPTIONS=" --verbose_msg_detail --zero_fill "
 PFLOGSUMMBIN="/usr/sbin/pflogsumm "
 
 #HTML Output
-HTMLOUTPUTDIR="${MAINDIR}/www/"
+HTMLOUTPUTDIR="${MAINDIR}/www"
 HTMLOUTPUT_INDEXDASHBOARD="index.html"
 
 #Create the Cache Directory if it does not exist
@@ -62,7 +62,11 @@ CURRENTMONTH=$(date --date 'yesterday' +'%b')
 CURRENTDAY=$(date --date 'yesterday' +"%d")
 
 #RAW LOGS Output
-RAWDIR="${MAINDIR}/www/reports/${CURRENTYEAR}/${CURRENTMONTH}/${CURRENTDAY}"
+RAWDIR="${HTMLOUTPUTDIR}/reports/${CURRENTYEAR}/${CURRENTMONTH}/${CURRENTDAY}"
+
+#Link for raw log in html
+RAWFILELINK="reports/${CURRENTYEAR}/${CURRENTMONTH}/${CURRENTDAY}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt"
+RAWFILENAME="$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt"
 
 #Create the RAW LOGS folder always
 mkdir -p ${RAWDIR};
@@ -725,7 +729,7 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                         <div> <strong>Report Date</strong> </div>
                         <div>##REPORTDATE##</div>
                         <div class="spacer15"></div>
-                        <div>Raw file available in: <a href="${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt">$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt</a></div>
+                        <div>Raw file available in: <a href="##RAWFILELINK##">##RAWFILENAME##</a></div>
                     </div>
                 </div>
             </div>
@@ -1357,6 +1361,8 @@ HTMLREPORTDASHBOARD
 #======================================================
 sed -i "s/##REPORTDATE##/$REPORTDATE/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##ACTIVEHOSTNAME##/$ACTIVEHOSTNAME/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##RAWFILELINK##/$RAWFILELINK/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##RAWFILENAME##/$RAWFILENAME/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##ReceivedEmail##/$ReceivedEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##DeliveredEmail##/$DeliveredEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##ForwardedEmail##/$ForwardedEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
