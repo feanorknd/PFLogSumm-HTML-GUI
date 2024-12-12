@@ -32,7 +32,7 @@
 #=====================================================================================================================
 
 #CONFIG FILE LOCATION
-PFSYSCONFDIR="/etc"
+PFSYSCONFDIR="/home/postfix"
 
 #Create Blank Config File if it does not exist
 if [ ! -f ${PFSYSCONFDIR}/"pflogsumui.conf" ]
