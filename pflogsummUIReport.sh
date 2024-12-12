@@ -92,7 +92,7 @@ sed -n '/^Per-Hour Traffic Daily Average/,/^Host\//p;/^Host\//q' ${TMPFOLDER}/ma
 
 #Extract from today PFLOGSUMM
 
-echo "sed -n '/^Grand Totals/,/^Per-Day/p;/^Per-Day/q' ${TMPFOLDER}/maillastdays | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals"
+echo "sed -n '/^Grand Totals/,/^Per-Day/p;/^Per-Day/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals"
 
 exit 1
 
