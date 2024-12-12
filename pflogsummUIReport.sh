@@ -74,50 +74,56 @@ MOVEF="/usr/bin/mv -f "
 REPORTDATE=$(date '+%Y-%m-%d %H:%M:%S')
 CURRENTYEAR=$(date +'%Y')
 CURRENTMONTH=$(date +'%b')
-CURRENTDAY=$(date +"%e")
+CURRENTDAY=$(date +"%d")
+TMPFOLDER="$HTMLOUTPUTDIR/data/.temp"
 
-$PFLOGSUMMBIN $PFLOGSUMMOPTIONS  -e $LOGFILELOCATION > /tmp/mailreport
+#Create the temp Directory if it does not exist
+if [ ! -d $TMPFOLDER ]; then
+  mkdir $TMPFOLDER;
+fi
+
+$PFLOGSUMMBIN $PFLOGSUMMOPTIONS  -e $LOGFILELOCATION > ${TMPFOLDER}/mailreport
 
 
 #Extract Sections from PFLOGSUMM
-sed -n '/^Grand Totals/,/^Per-Day/p;/^Per-Day/q' /tmp/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > /tmp/GrandTotals
-sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' /tmp/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > /tmp/PerDayTrafficSummary
-sed -n '/^Per-Hour Traffic Daily Average/,/^Host\//p;/^Host\//q' /tmp/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > /tmp/PerHourTrafficDailyAverage
-sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' /tmp/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > /tmp/HostDomainSummaryMessageDelivery
-sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p;/^Senders by message count/q' /tmp/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > /tmp/HostDomainSummaryMessagesReceived
-sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' /tmp/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > /tmp/Sendersbymessagecount
-sed -n '/^Recipients by message count/,/^Senders by message size/p;/^Senders by message size/q' /tmp/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > /tmp/Recipientsbymessagecount
-sed -n '/^Senders by message size/,/^Recipients by message size/p;/^Recipients by message size/q' /tmp/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > /tmp/Sendersbymessagesize
-sed -n '/^Recipients by message size/,/^Messages with no size data/p;/^Messages with no size data/q' /tmp/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > /tmp/Recipientsbymessagesize
-sed -n '/^Messages with no size data/,/^message deferral detail/p;/^message deferral detail/q' /tmp/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > /tmp/Messageswithnosizedata
-sed -n '/^message deferral detail/,/^message bounce detail (by relay)/p;/^message bounce detail (by relay)/q' /tmp/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > /tmp/messagedeferraldetail
-sed -n '/^message bounce detail (by relay)/,/^message reject detail/p;/^message reject detail/q' /tmp/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > /tmp/messagebouncedetaibyrelay
-sed -n '/^Warnings/,/^Fatal Errors/p;/^Fatal Errors/q' /tmp/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > /tmp/warnings
+sed -n '/^Grand Totals/,/^Per-Day/p;/^Per-Day/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
+sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerDayTrafficSummary
+sed -n '/^Per-Hour Traffic Daily Average/,/^Host\//p;/^Host\//q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficDailyAverage
+sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
+sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p;/^Senders by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
+sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
+sed -n '/^Recipients by message count/,/^Senders by message size/p;/^Senders by message size/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagecount
+sed -n '/^Senders by message size/,/^Recipients by message size/p;/^Recipients by message size/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagesize
+sed -n '/^Recipients by message size/,/^Messages with no size data/p;/^Messages with no size data/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagesize
+sed -n '/^Messages with no size data/,/^message deferral detail/p;/^message deferral detail/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Messageswithnosizedata
+sed -n '/^message deferral detail/,/^message bounce detail (by relay)/p;/^message bounce detail (by relay)/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagedeferraldetail
+sed -n '/^message bounce detail (by relay)/,/^message reject detail/p;/^message reject detail/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagebouncedetaibyrelay
+sed -n '/^Warnings/,/^Fatal Errors/p;/^Fatal Errors/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/warnings
 
-sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' /tmp/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > /tmp/FatalErrors
+sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/FatalErrors
 
 
 #======================================================
 # Extract Information into variables -> Grand Totals
 #======================================================
-ReceivedEmail=$(awk '$2=="received" {print $1}'  /tmp/GrandTotals)
-DeliveredEmail=$(awk '$2=="delivered" {print $1}'  /tmp/GrandTotals)
-ForwardedEmail=$(awk '$2=="forwarded" {print $1}'  /tmp/GrandTotals)
-DeferredEmailCount=$(awk '$2=="deferred" {print $1}'  /tmp/GrandTotals)
-DeferredEmailDeferralsCount=$(awk '$2=="deferred" {print $3" "$4}'  /tmp/GrandTotals)
-BouncedEmail=$(awk '$2=="bounced" {print $1}'  /tmp/GrandTotals)
-RejectedEmailCount=$(awk '$2=="rejected" {print $1}'  /tmp/GrandTotals)
-RejectedEmailPercentage=$(awk '$2=="rejected" {print $3}'  /tmp/GrandTotals)
-RejectedWarningsEmail=$(sed 's/reject warnings/rejectwarnings/' /tmp/GrandTotals | awk '$2=="rejectwarnings" {print $1}')
-HeldEmail=$(awk '$2=="held" {print $1}'  /tmp/GrandTotals)
-DiscardedEmailCount=$(awk '$2=="discarded" {print $1}'  /tmp/GrandTotals)
-DiscardedEmailPercentage=$(awk '$2=="discarded" {print $3}'  /tmp/GrandTotals)
-BytesReceivedEmail=$(sed 's/bytes received/bytesreceived/' /tmp/GrandTotals | awk '$2=="bytesreceived" {print $1}'|sed 's/[^0-9]*//g' )
-BytesDeliveredEmail=$(sed 's/bytes delivered/bytesdelivered/' /tmp/GrandTotals | awk '$2=="bytesdelivered" {print $1}'|sed 's/[^0-9]*//g')
-SendersEmail=$(awk '$2=="senders" {print $1}'  /tmp/GrandTotals)
-SendingHostsDomainsEmail=$(sed 's/sending hosts\/domains/sendinghostsdomains/' /tmp/GrandTotals | awk '$2=="sendinghostsdomains" {print $1}')
-RecipientsEmail=$(awk '$2=="recipients" {print $1}'  /tmp/GrandTotals)
-RecipientHostsDomainsEmail=$(sed 's/recipient hosts\/domains/recipienthostsdomains/' /tmp/GrandTotals | awk '$2=="recipienthostsdomains" {print $1}')
+ReceivedEmail=$(awk '$2=="received" {print $1}'  ${TMPFOLDER}/GrandTotals)
+DeliveredEmail=$(awk '$2=="delivered" {print $1}'  ${TMPFOLDER}/GrandTotals)
+ForwardedEmail=$(awk '$2=="forwarded" {print $1}'  ${TMPFOLDER}/GrandTotals)
+DeferredEmailCount=$(awk '$2=="deferred" {print $1}'  ${TMPFOLDER}/GrandTotals)
+DeferredEmailDeferralsCount=$(awk '$2=="deferred" {print $3" "$4}'  ${TMPFOLDER}/GrandTotals)
+BouncedEmail=$(awk '$2=="bounced" {print $1}'  ${TMPFOLDER}/GrandTotals)
+RejectedEmailCount=$(awk '$2=="rejected" {print $1}'  ${TMPFOLDER}/GrandTotals)
+RejectedEmailPercentage=$(awk '$2=="rejected" {print $3}'  ${TMPFOLDER}/GrandTotals)
+RejectedWarningsEmail=$(sed 's/reject warnings/rejectwarnings/' ${TMPFOLDER}/GrandTotals | awk '$2=="rejectwarnings" {print $1}')
+HeldEmail=$(awk '$2=="held" {print $1}'  ${TMPFOLDER}/GrandTotals)
+DiscardedEmailCount=$(awk '$2=="discarded" {print $1}'  ${TMPFOLDER}/GrandTotals)
+DiscardedEmailPercentage=$(awk '$2=="discarded" {print $3}'  ${TMPFOLDER}/GrandTotals)
+BytesReceivedEmail=$(sed 's/bytes received/bytesreceived/' ${TMPFOLDER}/GrandTotals | awk '$2=="bytesreceived" {print $1}'|sed 's/[^0-9]*//g' )
+BytesDeliveredEmail=$(sed 's/bytes delivered/bytesdelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="bytesdelivered" {print $1}'|sed 's/[^0-9]*//g')
+SendersEmail=$(awk '$2=="senders" {print $1}'  ${TMPFOLDER}/GrandTotals)
+SendingHostsDomainsEmail=$(sed 's/sending hosts\/domains/sendinghostsdomains/' ${TMPFOLDER}/GrandTotals | awk '$2=="sendinghostsdomains" {print $1}')
+RecipientsEmail=$(awk '$2=="recipients" {print $1}'  ${TMPFOLDER}/GrandTotals)
+RecipientHostsDomainsEmail=$(sed 's/recipient hosts\/domains/recipienthostsdomains/' ${TMPFOLDER}/GrandTotals | awk '$2=="recipienthostsdomains" {print $1}')
 
 
 #======================================================
@@ -129,9 +135,9 @@ do
     PerDayTrafficSummaryTable+="<tr>"
     PerDayTrafficSummaryTable+=$(echo "$var" | awk '{print "<td>"$1" "$2" "$3"</td>""<td>"$4"</td>""<td>"$5"</td>""<td>"$6"</td>""<td>"$7"</td>""<td>"$8"</td>"}')
     PerDayTrafficSummaryTable+="</tr>"
-    echo $PerDayTrafficSummaryTable >> /tmp/PerDayTrafficSummary_tmp
-done < /tmp/PerDayTrafficSummary
-$MOVEF  /tmp/PerDayTrafficSummary_tmp /tmp/PerDayTrafficSummary &> /dev/null
+    echo $PerDayTrafficSummaryTable >> ${TMPFOLDER}/PerDayTrafficSummary_tmp
+done < ${TMPFOLDER}/PerDayTrafficSummary
+$MOVEF  ${TMPFOLDER}/PerDayTrafficSummary_tmp ${TMPFOLDER}/PerDayTrafficSummary &> /dev/null
 
 #======================================================
 # Extract Information into variable -> Per-Hour Traffic Daily Average
@@ -142,9 +148,9 @@ do
     PerHourTrafficDailyAverageTable+="<tr>"
     PerHourTrafficDailyAverageTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>""<td>"$3"</td>""<td>"$4"</td>""<td>"$5"</td>""<td>"$6"</td>"}')
     PerHourTrafficDailyAverageTable+="</tr>"
-    echo $PerHourTrafficDailyAverageTable >> /tmp/PerHourTrafficDailyAverage_tmp
-done < /tmp/PerHourTrafficDailyAverage
-$MOVEF /tmp/PerHourTrafficDailyAverage_tmp /tmp/PerHourTrafficDailyAverage &> /dev/null
+    echo $PerHourTrafficDailyAverageTable >> ${TMPFOLDER}/PerHourTrafficDailyAverage_tmp
+done < ${TMPFOLDER}/PerHourTrafficDailyAverage
+$MOVEF ${TMPFOLDER}/PerHourTrafficDailyAverage_tmp ${TMPFOLDER}/PerHourTrafficDailyAverage &> /dev/null
 
 
 #======================================================
@@ -156,9 +162,9 @@ do
     HostDomainSummaryMessageDeliveryTable+="<tr>"
     HostDomainSummaryMessageDeliveryTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>""<td>"$3"</td>""<td>"$4" "$5"</td>""<td>"$6" "$7"</td>""<td>"$8"</td>" }')
     HostDomainSummaryMessageDeliveryTable+="</tr>"
-    echo $HostDomainSummaryMessageDeliveryTable >> /tmp/HostDomainSummaryMessageDelivery_tmp
-done < /tmp/HostDomainSummaryMessageDelivery
-$MOVEF /tmp/HostDomainSummaryMessageDelivery_tmp /tmp/HostDomainSummaryMessageDelivery &> /dev/null
+    echo $HostDomainSummaryMessageDeliveryTable >> ${TMPFOLDER}/HostDomainSummaryMessageDelivery_tmp
+done < ${TMPFOLDER}/HostDomainSummaryMessageDelivery
+$MOVEF ${TMPFOLDER}/HostDomainSummaryMessageDelivery_tmp ${TMPFOLDER}/HostDomainSummaryMessageDelivery &> /dev/null
 
 
 #======================================================
@@ -170,9 +176,9 @@ do
     HostDomainSummaryMessagesReceivedTable+="<tr>"
     HostDomainSummaryMessagesReceivedTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>""<td>"$3"</td>"}')
     HostDomainSummaryMessagesReceivedTable+="</tr>"
-    echo $HostDomainSummaryMessagesReceivedTable >> /tmp/HostDomainSummaryMessagesReceived_tmp
-done < /tmp/HostDomainSummaryMessagesReceived
-$MOVEF /tmp/HostDomainSummaryMessagesReceived_tmp /tmp/HostDomainSummaryMessagesReceived &> /dev/null
+    echo $HostDomainSummaryMessagesReceivedTable >> ${TMPFOLDER}/HostDomainSummaryMessagesReceived_tmp
+done < ${TMPFOLDER}/HostDomainSummaryMessagesReceived
+$MOVEF ${TMPFOLDER}/HostDomainSummaryMessagesReceived_tmp ${TMPFOLDER}/HostDomainSummaryMessagesReceived &> /dev/null
 
 
 #======================================================
@@ -184,9 +190,9 @@ do
     SendersbymessagecountTable+="<tr>"
     SendersbymessagecountTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>"}')
     SendersbymessagecountTable+="</tr>"
-    echo $SendersbymessagecountTable >> /tmp/Sendersbymessagecount_tmp
-done < /tmp/Sendersbymessagecount
-$MOVEF  /tmp/Sendersbymessagecount_tmp /tmp/Sendersbymessagecount &> /dev/null
+    echo $SendersbymessagecountTable >> ${TMPFOLDER}/Sendersbymessagecount_tmp
+done < ${TMPFOLDER}/Sendersbymessagecount
+$MOVEF  ${TMPFOLDER}/Sendersbymessagecount_tmp ${TMPFOLDER}/Sendersbymessagecount &> /dev/null
 
 #======================================================
 # Extract Information into variable -> Recipients by message count
@@ -197,9 +203,9 @@ do
     RecipientsbymessagecountTable+="<tr>"
     RecipientsbymessagecountTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>"}')
     RecipientsbymessagecountTable+="</tr>"
-    echo $RecipientsbymessagecountTable >> /tmp/Recipientsbymessagecount_tmp
-done < /tmp/Recipientsbymessagecount
-$MOVEF /tmp/Recipientsbymessagecount_tmp /tmp/Recipientsbymessagecount &> /dev/null
+    echo $RecipientsbymessagecountTable >> ${TMPFOLDER}/Recipientsbymessagecount_tmp
+done < ${TMPFOLDER}/Recipientsbymessagecount
+$MOVEF ${TMPFOLDER}/Recipientsbymessagecount_tmp ${TMPFOLDER}/Recipientsbymessagecount &> /dev/null
 
 
 #======================================================
@@ -211,9 +217,9 @@ do
     SendersbymessagesizeTable+="<tr>"
     SendersbymessagesizeTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>"}')
     SendersbymessagesizeTable+="</tr>"
-    echo $SendersbymessagesizeTable >> /tmp/Sendersbymessagesize_tmp
-done < /tmp/Sendersbymessagesize
-$MOVEF /tmp/Sendersbymessagesize_tmp /tmp/Sendersbymessagesize &> /dev/null
+    echo $SendersbymessagesizeTable >> ${TMPFOLDER}/Sendersbymessagesize_tmp
+done < ${TMPFOLDER}/Sendersbymessagesize
+$MOVEF ${TMPFOLDER}/Sendersbymessagesize_tmp ${TMPFOLDER}/Sendersbymessagesize &> /dev/null
 
 
 #======================================================
@@ -225,9 +231,9 @@ do
     RecipientsbymessagesizeTable+="<tr>"
     RecipientsbymessagesizeTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>"}')
     RecipientsbymessagesizeTable+="</tr>"
-    echo $RecipientsbymessagesizeTable >> /tmp/Recipientsbymessagesize_tmp
-done < /tmp/Recipientsbymessagesize
-$MOVEF /tmp/Recipientsbymessagesize_tmp /tmp/Recipientsbymessagesize &> /dev/null
+    echo $RecipientsbymessagesizeTable >> ${TMPFOLDER}/Recipientsbymessagesize_tmp
+done < ${TMPFOLDER}/Recipientsbymessagesize
+$MOVEF ${TMPFOLDER}/Recipientsbymessagesize_tmp ${TMPFOLDER}/Recipientsbymessagesize &> /dev/null
 
 #======================================================
 # Extract Information into variable -> Recipients by messagesize Table
@@ -238,10 +244,10 @@ do
     MessageswithnosizedataTable+="<tr>"
     MessageswithnosizedataTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>"}')
     MessageswithnosizedataTable+="</tr>"
-    echo $MessageswithnosizedataTable >> /tmp/Messageswithnosizedata_tmp
+    echo $MessageswithnosizedataTable >> ${TMPFOLDER}/Messageswithnosizedata_tmp
     echo $MessageswithnosizedataTable
-done < /tmp/Messageswithnosizedata
-$MOVEF  /tmp/Messageswithnosizedata_tmp /tmp/Messageswithnosizedata  &> /dev/null
+done < ${TMPFOLDER}/Messageswithnosizedata
+$MOVEF  ${TMPFOLDER}/Messageswithnosizedata_tmp ${TMPFOLDER}/Messageswithnosizedata  &> /dev/null
 
 #======================================================
 # Single PAGE INDEX HTML TEMPLATE
@@ -1377,7 +1383,7 @@ sed -i "s/##RecipientHostsDomainsEmail##/$RecipientHostsDomainsEmail/g" $HTMLOUT
 # Replace Placeholders with values - Table PerDayTrafficSummaryTable
 #======================================================
 sed -i '/##PerDayTrafficSummaryTable##/ {
-r /tmp/PerDayTrafficSummary
+r ${TMPFOLDER}/PerDayTrafficSummary
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1386,7 +1392,7 @@ d
 # Replace Placeholders with values - Table PerHourTrafficDailyAverageTable
 #======================================================
 sed -i '/##PerHourTrafficDailyAverageTable##/ {
-r /tmp/PerHourTrafficDailyAverage
+r ${TMPFOLDER}/PerHourTrafficDailyAverage
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1395,7 +1401,7 @@ d
 # Replace Placeholders with values - Table HostDomainSummaryMessageDelivery
 #======================================================
 sed -i '/##HostDomainSummaryMessageDelivery##/ {
-r /tmp/HostDomainSummaryMessageDelivery
+r ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1403,7 +1409,7 @@ d
 # Replace Placeholders with values - Table HostDomainSummaryMessagesReceived
 #======================================================
 sed -i '/##HostDomainSummaryMessagesReceived##/ {
-r /tmp/HostDomainSummaryMessagesReceived
+r ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1411,7 +1417,7 @@ d
 # Replace Placeholders with values - Table Sendersbymessagecount
 #======================================================
 sed -i '/##Sendersbymessagecount##/ {
-r /tmp/Sendersbymessagecount
+r ${TMPFOLDER}/Sendersbymessagecount
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1419,7 +1425,7 @@ d
 # Replace Placeholders with values - Table RecipientsbyMessageCount
 #======================================================
 sed -i '/##RecipientsbyMessageCount##/ {
-r /tmp/Recipientsbymessagecount
+r ${TMPFOLDER}/Recipientsbymessagecount
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1427,7 +1433,7 @@ d
 # Replace Placeholders with values - Table SendersbyMessageSize
 #======================================================
 sed -i '/##SendersbyMessageSize##/ {
-r /tmp/Sendersbymessagesize
+r ${TMPFOLDER}/Sendersbymessagesize
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1435,7 +1441,7 @@ d
 # Replace Placeholders with values - Table Recipientsbymessagesize
 #======================================================
 sed -i '/##Recipientsbymessagesize##/ {
-r /tmp/Recipientsbymessagesize
+r ${TMPFOLDER}/Recipientsbymessagesize
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1443,7 +1449,7 @@ d
 # Replace Placeholders with values - Table Messageswithnosizedata
 #======================================================
 sed -i '/##Messageswithnosizedata##/ {
-r /tmp/Messageswithnosizedata
+r ${TMPFOLDER}/Messageswithnosizedata
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1452,7 +1458,7 @@ d
 # Replace Placeholders with values -  MessageDeferralDetail
 #======================================================
 sed -i '/##MessageDeferralDetail##/ {
-r /tmp/messagedeferraldetail
+r ${TMPFOLDER}/messagedeferraldetail
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1460,7 +1466,7 @@ d
 # Replace Placeholders with values -  MessageBounceDetailbyrelay
 #======================================================
 sed -i '/##MessageBounceDetailbyrelay##/ {
-r /tmp/messagebouncedetaibyrelay
+r ${TMPFOLDER}/messagebouncedetaibyrelay
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1469,7 +1475,7 @@ d
 # Replace Placeholders with values - warnings
 #======================================================
 sed -i '/##MailWarnings##/ {
-r /tmp/warnings
+r ${TMPFOLDER}/warnings
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1478,7 +1484,7 @@ d
 # Replace Placeholders with values - FatalErrors
 #======================================================
 sed -i '/##MailFatalErrors##/ {
-r /tmp/FatalErrors
+r ${TMPFOLDER}/FatalErrors
 d
 }' $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
 
@@ -1591,3 +1597,5 @@ done
 #======================================================
 # Clean UP
 #======================================================
+
+rm -Rf $TMPFOLDER
