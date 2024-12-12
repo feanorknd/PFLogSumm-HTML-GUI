@@ -34,32 +34,16 @@
 #CONFIG FILE LOCATION
 PFSYSCONFDIR="/home/postfix"
 
-#Create Blank Config File if it does not exist
-if [ ! -f ${PFSYSCONFDIR}/"pflogsumui.conf" ]
-then
-tee ${PFSYSCONFDIR}/"pflogsumui.conf" <<EOF
-#PFLOGSUMUI CONFIG
-
 ##  Postfix Log Location
-LOGFILELOCATION="/var/log/maillog"
+LOGFILELOCATION="/var/log/mail.log"
 
 ##  pflogsumm details
-##  NOTE: DONT USE -d today - breaks the script
-PFLOGSUMMOPTIONS=" --verbose_msg_detail --zero_fill "
+PFLOGSUMMOPTIONS=" --verbose_msg_detail --zero_fill --no-no-msg-size"
 PFLOGSUMMBIN="/usr/sbin/pflogsumm  "
 
 ##  HTML Output
-HTMLOUTPUTDIR="/var/www/html/"
+HTMLOUTPUTDIR="/home/postfix/www/"
 HTMLOUTPUT_INDEXDASHBOARD="index.html"
-
-EOF
-echo "DEFAULT configuration file writen to ${PFSYSCONFDIR}/pflogsumui.conf, Please verify the paths before you continue"
-exit 0
-fi
-
-#Load Config File
-. ${PFSYSCONFDIR}/"pflogsumui.conf"
-
 
 #Create the Cache Directory if it does not exist
 if [ ! -d $HTMLOUTPUTDIR/data ]; then
@@ -97,7 +81,7 @@ sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p
 sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
 sed -n '/^Recipients by message count/,/^Senders by message size/p;/^Senders by message size/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagecount
 sed -n '/^Senders by message size/,/^Recipients by message size/p;/^Recipients by message size/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagesize
-sed -n '/^Recipients by message size/,/^Messages with no size data/p;/^Messages with no size data/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagesize
+sed -n '/^Recipients by message size/,/^message deferral detail/p;/^message deferral detail/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagesize
 sed -n '/^Messages with no size data/,/^message deferral detail/p;/^message deferral detail/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Messageswithnosizedata
 sed -n '/^message deferral detail/,/^message bounce detail (by relay)/p;/^message bounce detail (by relay)/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagedeferraldetail
 sed -n '/^message bounce detail (by relay)/,/^message reject detail/p;/^message reject detail/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagebouncedetaibyrelay
