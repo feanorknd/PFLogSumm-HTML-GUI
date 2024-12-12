@@ -157,7 +157,7 @@ $MOVEF ${TMPFOLDER}/PerHourTrafficSummary_tmp ${TMPFOLDER}/PerHourTrafficSummary
 
 
 #======================================================
-# Extract Information into variable -> Per-Hour Traffic Daily Average
+# Extract Information into variable -> Host Domain Summary Messages Delivery
 #======================================================
 while IFS= read -r var
 do
@@ -931,7 +931,7 @@ cat > $HTMLOUTPUTDIR/data/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLRE
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#PerHourTrafficSummary" role="button" aria-expanded="false"
                 aria-controls="PerHourTrafficSummary">
-                <h6 class="border-bottom border-gray pb-2 mb-0">Per-Hour Traffic Daily Average</h6>
+                <h6 class="border-bottom border-gray pb-2 mb-0">Per-Hour Traffic Summary</h6>
             </a>
             <div class="container collapse" id="PerHourTrafficSummary">
                 <div class="row">
@@ -1599,4 +1599,4 @@ done
 # Clean UP
 #======================================================
 
-rm -Rf ${TMPFOLDER}
+#rm -Rf ${TMPFOLDER}
