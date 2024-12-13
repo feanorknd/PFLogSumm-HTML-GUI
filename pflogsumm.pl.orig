@@ -458,7 +458,6 @@ my (
     %deferred, %bounced,
     %noMsgSize, %msgDetail,
     $msgsRcvd, $msgsDlvrd, $sizeRcvd, $sizeDlvrd,
-    $msgsDlvrdRemote, $msgsDlvrdLocal,
     $msgMonStr, $msgMon, $msgDay, $msgTimeStr, $msgHr, $msgMin, $msgSec,
     $msgYr,
     $revMsgDateStr, $dayCnt, %msgsPerDay,
@@ -474,7 +473,7 @@ my (
 $dayCnt = $smtpdConnCnt = $smtpdTotTime = 0;
 
 # Init total messages delivered, rejected, and discarded
-$msgsDlvrd = $msgsRjctd = $msgsDscrdd = $msgsDlvrdRemote = $msgsDlvrdLocal = 0;
+$msgsDlvrd = $msgsRjctd = $msgsDscrdd = 0;
 
 # Init messages received and delivered per hour
 my @rcvPerHr = (0) x 24;
@@ -854,8 +853,6 @@ while(<>) {
 		++$dlvPerHr[$msgHr];
 		++${$msgsPerDay{$revMsgDateStr}}[1];
 		++$msgsDlvrd;
-
-
 		# DEBUG DEBUG DEBUG
 		#print STDERR "Delivered: $qid\n";
 		if($msgSizes{$qid}) {
