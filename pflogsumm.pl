@@ -854,8 +854,8 @@ while(<>) {
 		++$dlvPerHr[$msgHr];
 		++${$msgsPerDay{$revMsgDateStr}}[1];
 		++$msgsDlvrd;
-                print STDERR "Delivered: $relay\n";
-		if($relay =~ /\S+dovecot\S+/) {
+                #print STDERR "Delivered: $relay\n";
+		if($relay =~ /dovecot/i) {
 		    ++$msgsDlvrdLocal;
 		} else {
 		    ++$msgsDlvrdRemote;
