@@ -31,15 +31,72 @@
 #   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #=====================================================================================================================
 
-#ALWAYS RECEIVE LOGFILELOCATION FROM ARGUMENTS
-if [ -z $1 ]
-then
-	echo "Call script including postfix log file to be analyzed."
-	echo "(Example: pflogsummUIReport.sh /var/log/mail.log)"
-	exit 1
+# VARIABLES
+
+function showhelp {
+        echo "
+How to use it:
+  $0 -l|--logfile <path> [-d|--date <today|yesterday*|YYYY-MM-DD>] [-h|--help]
+
+Select any of these options:
+  -l, --logfile         Mandatory, select path of the Postfix log file to analyze. Could be plain text or either a compressed gzip file (gz)
+  -d, --date            Optional, could be one of the following values: today, yesterday (default) or YYYY-MM-DD formatted date
+  -h, --help            Some help here!
+
+"
+}
+
+if [[ "$#" = 0 ]]; then showhelp; exit 1; fi
+
+function checkarg {
+        if [ -z "$2" ]; then
+                echo "Error: must specify parameter for $1 function"
+                echo ""
+                showhelp
+                exit 1
+        fi
+        if [ "$1" == "logfile" ] && [ ! -e $2 ]; then
+                echo "Path do not seem to exist. Exiting..."
+                echo ""
+                exit 1
+        fi
+        if [ "$1" == "date" ] && [[ "$2" != "today" && "$2" != "yesterday" && ! "$2" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+		echo "Error: Invalid input. Please provide 'today', 'yesterday', or a date in the format YYYY-MM-DD." >&2
+		echo ""
+		exit 1
+	fi
+}
+
+while [[ "$#" > 0 ]]; do
+  case "$1" in
+    -l|--logfile)       checkarg "logfile" "$2" ; LOGFILE="$2" ; shift;;
+    -d|--date)          checkarg "date" "$2"    ; MY_DATE="$2"    ; shift;;
+    -h|--help)          HELP=true               ;;
+    *|-*|--*)           showhelp                ; exit 1       ;;
+  esac
+  shift
+done
+
+
+#MANDATORY LOGFILE PARAMETER
+if [[ -f "${LOGFILE}" ]]; then
+    filetype=$(file --mime-type -b "${LOGFILE}")
+    if [[ "${filetype}" == "application/gzip" ]]; then
+	MY_CAT="$(which zcat)"
+    elif [[ "${filetype}" == "text/plain" ]]; then
+	MY_CAT="$(which cat)"
+    else
+        echo "The file '${LOGFILE}' is of an unknown type: ${filetype}"
+        exit 1
+    fi
 else
-	LOGFILELOCATION="$1"
+        echo "Call script including postfix log file to be analyzed. Could be plain text or even gz file."
+        echo "(Execute with --help)"
+        exit 1
 fi
+
+#CONSIDER DEFAULTING DATE
+[ -z ${DATE} ] && DATE="yesterday"
 
 #CONFIG FILE LOCATION
 MAINDIR="/home/postfix"
@@ -68,9 +125,17 @@ MOVEF="/usr/bin/mv -f "
 
 #Temporal Values: values for yesterday (as called while prerotating logs by logrotate.d)
 REPORTDATE=$(date '+%Y-%m-%d %H:%M:%S')
-CURRENTYEAR=$(date --date 'yesterday' +'%Y')
-CURRENTMONTH=$(date --date 'yesterday' +'%b')
-CURRENTDAY=$(date --date 'yesterday' +"%d")
+CURRENTYEAR=$(date  --date "${MY_DATE}" +'%Y')
+CURRENTMONTH=$(date --date "${MY_DATE}" +'%b')
+CURRENTDAY=$(date   --date "${MY_DATE}" +"%d")
+
+#Just verificate that there are some log lines for specified
+if [ $(${MY_CAT} ${LOGFILE} | grep -i postfix | grep -P "^${CURRENTMONTH}\s+$(date --date "${MY_DATE}" +"%-d")" | wc -l) -eq 0 ]
+then
+	echo "Specified '${LOGFILE}' seems to not include loglines for specified '${MY_DATE}' date."
+	echo "Aborting..."
+	exit 1
+fi
 
 #RAW LOGS Output
 RAWDIR="${HTMLOUTPUTDIR}/data/reports/${CURRENTYEAR}/${CURRENTMONTH}/${CURRENTDAY}"
@@ -88,12 +153,16 @@ TMPFOLDER="$HTMLOUTPUTDIR/.temp"
 #Create the temp Directory if it does not exist
 mkdir -p ${TMPFOLDER};
 
-#Trigger pflogsumm for yesterday logs (as called while prerotating logs by logrotate.d)
+
+
+#Trigger pflogsumm for ${DATE} logs
 #Used for everything but Per-Day Traffic Summary (should not take so much time)
-$PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d yesterday -e $LOGFILELOCATION > ${TMPFOLDER}/mailreport
+${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d ${MY_DATE} -e > ${TMPFOLDER}/mailreport
 
 #Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary (should not take so much time)
-$PFLOGSUMMBIN $PFLOGSUMMOPTIONS -e $LOGFILELOCATION > ${TMPFOLDER}/maillastdays
+${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -e > ${TMPFOLDER}/maillastdays
+
+
 
 #Extract from last days PFLOGSUMM
 sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${TMPFOLDER}/maillastdays | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerDayTrafficSummary

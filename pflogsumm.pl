@@ -6,11 +6,13 @@ eval 'exec perl -S $0 "$@"'
 
 pflogsumm - Produce Postfix MTA logfile summary
 
+(Customized by Gino 2024 to allow specifying date to analyze)
+
 Copyright (C) 1998-2010 by James S. Seymour, Release 1.1.5
 
 =head1 SYNOPSIS
 
-    pflogsumm -[eq] [-d <today|yesterday>] [--detail <cnt>]
+    pflogsumm -[eq] [-d <today|yesterday|YYYY-MM-DD>] [--detail <cnt>]
 	[--bounce-detail <cnt>] [--deferral-detail <cnt>]
 	[-h <cnt>] [-i|--ignore-case] [--iso-date-time] [--mailq]
 	[-m|--uucp-mung] [--no-no-msg-size] [--problems-first]
@@ -43,6 +45,7 @@ Copyright (C) 1998-2010 by James S. Seymour, Release 1.1.5
 
     -d today       generate report for just today
     -d yesterday   generate report for just "yesterday"
+    -d YYYY-MM-DD  generate report for this "YYYY-MM-DD" date
 
     --deferral-detail <cnt>
 
@@ -489,7 +492,7 @@ for (0 .. 23) {
 ($progName = $0) =~ s/^.*\///;
 
 $usageMsg =
-    "usage: $progName -[eq] [-d <today|yesterday>] [--detail <cnt>]
+    "usage: $progName -[eq] [-d <today|yesterday|YYYY-MM-DD>] [--detail <cnt>]
 	[--bounce-detail <cnt>] [--deferral-detail <cnt>]
 	[-h <cnt>] [-i|--ignore-case] [--iso-date-time] [--mailq]
 	[-m|--uucp-mung] [--no-no-msg-size] [--problems-first]
@@ -1505,7 +1508,7 @@ sub by_count_then_size {
 }
 
 # return traditional and RFC3339 date strings to match in log
-sub get_datestrs {
+sub get_datestrs_original_unused {
     my ($dateOpt) = $_[0];
 
     my $time = time();
@@ -1519,6 +1522,31 @@ sub get_datestrs {
     my ($t_mday, $t_mon, $t_year) = (localtime($time))[3,4,5];
 
     return sprintf("%s %2d", $monthNames[$t_mon], $t_mday), sprintf("%04d-%02d-%02d", $t_year+1900, $t_mon+1, $t_mday);
+}
+
+sub get_datestrs {
+    my ($dateOpt) = $_[0];
+
+    my $time;
+
+    if ($dateOpt eq "yesterday") {
+        # Back up to yesterday
+        $time = time() - ((localtime(time()))[2] + 2) * 3600;
+    } elsif ($dateOpt eq "today") {
+        # Current time
+        $time = time();
+    } elsif ($dateOpt =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
+        # Match YYYY-MM-DD format
+        my ($year, $month, $day) = ($1, $2, $3);
+        # Convert to epoch time
+        $time = Time::Local::timelocal(0, 0, 0, $day, $month - 1, $year - 1900);
+    } else {
+        die "Invalid date option. Use 'yesterday', 'today', or 'YYYY-MM-DD'.\n";
+    }
+
+    my ($t_mday, $t_mon, $t_year) = (localtime($time))[3,4,5];
+
+    return sprintf("%s %2d", $monthNames[$t_mon], $t_mday), sprintf("%04d-%02d-%02d", $t_year + 1900, $t_mon + 1, $t_mday);
 }
 
 # if there's a real domain: uses that.  Otherwise uses the IP addr.
