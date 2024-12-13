@@ -1524,30 +1524,33 @@ sub get_datestrs_original_unused {
     return sprintf("%s %2d", $monthNames[$t_mon], $t_mday), sprintf("%04d-%02d-%02d", $t_year+1900, $t_mon+1, $t_mday);
 }
 
-sub get_datestrs {
-    my ($dateOpt) = $_[0];
+use Date::Calc qw(Add_Delta_Days Today Decode_Date_US);
 
-    my $time;
+sub get_datestrs {
+    my ($dateOpt) = @_;
+
+    my ($year, $month, $day);
 
     if ($dateOpt eq "yesterday") {
-        # Back up to yesterday
-        $time = time() - ((localtime(time()))[2] + 2) * 3600;
+        # Get today's date and subtract one day
+        ($year, $month, $day) = Add_Delta_Days(Today(), -1);
     } elsif ($dateOpt eq "today") {
-        # Current time
-        $time = time();
+        # Get today's date
+        ($year, $month, $day) = Today();
     } elsif ($dateOpt =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
-        # Match YYYY-MM-DD format
-        my ($year, $month, $day) = ($1, $2, $3);
-        # Convert to epoch time
-        $time = Time::Local::timelocal(0, 0, 0, $day, $month - 1, $year - 1900);
+        # Match YYYY-MM-DD format and decode it
+        ($year, $month, $day) = ($1, $2, $3);
+        # Validate the date (Date::Calc handles invalid dates internally)
+        die "Invalid date: $dateOpt\n" unless Date::Calc::check_date($year, $month, $day);
     } else {
         die "Invalid date option. Use 'yesterday', 'today', or 'YYYY-MM-DD'.\n";
     }
 
-    my ($t_mday, $t_mon, $t_year) = (localtime($time))[3,4,5];
-
-    return sprintf("%s %2d", $monthNames[$t_mon], $t_mday), sprintf("%04d-%02d-%02d", $t_year + 1900, $t_mon + 1, $t_mday);
+    # Format the results
+    my @monthNames = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+    return sprintf("%s %2d", $monthNames[$month - 1], $day), sprintf("%04d-%02d-%02d", $year, $month, $day);
 }
+
 
 # if there's a real domain: uses that.  Otherwise uses the IP addr.
 # Lower-cases returned domain name.
