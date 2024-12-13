@@ -189,6 +189,7 @@ sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' $
 #======================================================
 ReceivedEmail=$(awk '$2=="received" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeliveredEmail=$(awk '$2=="delivered" {print $1}'  ${TMPFOLDER}/GrandTotals)
+# ginotouch
 ForwardedEmail=$(awk '$2=="forwarded" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeferredEmailCount=$(awk '$2=="deferred" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeferredEmailDeferralsCount=$(awk '$2=="deferred" {print $3" "$4}'  ${TMPFOLDER}/GrandTotals)

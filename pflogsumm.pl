@@ -854,8 +854,11 @@ while(<>) {
 		++$dlvPerHr[$msgHr];
 		++${$msgsPerDay{$revMsgDateStr}}[1];
 		++$msgsDlvrd;
-
-
+		if($relay =~ /\S+dovecot\S+/) {
+		    ++$msgsDlvrdLocal;
+		} else {
+		    ++$msgsDlvrdRemote;
+		}		
 		# DEBUG DEBUG DEBUG
 		#print STDERR "Delivered: $qid\n";
 		if($msgSizes{$qid}) {
@@ -953,6 +956,8 @@ print_subsect_title("Grand Totals");
 print "messages\n\n";
 printf " %6d%s  received\n", adj_int_units($msgsRcvd);
 printf " %6d%s  delivered\n", adj_int_units($msgsDlvrd);
+printf " %6d%s  remote delivered\n", adj_int_units($msgsDlvrdLocal);
+printf " %6d%s  local delivered\n", adj_int_units($msgsDlvrdRemote);
 printf " %6d%s  forwarded\n", adj_int_units($msgsFwdd);
 printf " %6d%s  deferred", adj_int_units($msgsDfrd);
 printf "  (%d%s deferrals)", adj_int_units($msgsDfrdCnt) if($msgsDfrdCnt);
