@@ -857,10 +857,10 @@ while(<>) {
                 print STDERR "Delivered: $relay\n";
 		if($relay =~ /dovecot/i) {
 		    ++$msgsDlvrdLocal;
-		    print STDERR "Now msgsDlvrdLocal = $$msgsDlvrdLocal\n";
+		    print STDERR "Now msgsDlvrdLocal = $msgsDlvrdLocal\n";
 		} else {
 		    ++$msgsDlvrdRemote;
-		    print STDERR "Now msgsDlvrdRemote = $$msgsDlvrdRemote\n";
+		    print STDERR "Now msgsDlvrdRemote = $msgsDlvrdRemote\n";
 		}		
 		# DEBUG DEBUG DEBUG
 		#print STDERR "Delivered: $qid\n";
