@@ -31,15 +31,26 @@
 #   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #=====================================================================================================================
 
+#ALWAYS RECEIVE LOGFILELOCATION FROM ARGUMENTS
+if [ -z $1 ]
+then
+	echo "Call script including postfix log file to be analyzed."
+	echo "(Example: pflogsummUIReport.sh /var/log/mail.log)"
+	exit 1
+else
+	LOGFILELOCATION="$1"
+fi
+
 #CONFIG FILE LOCATION
 MAINDIR="/home/postfix"
 
-#Postfix Log Location
-LOGFILELOCATION="/var/log/mail.log"
+#CURRENT PATH OF THIS SCRIPT
+MY_PATH="$(dirname -- "${BASH_SOURCE[0]}")"
+MY_PATH="$(cd -- "$MY_PATH" && pwd)"
 
 #pflogsumm details
 PFLOGSUMMOPTIONS=" --verbose_msg_detail --zero_fill "
-PFLOGSUMMBIN="/usr/sbin/pflogsumm "
+PFLOGSUMMBIN="${MY_PATH}/pflogsumm.pl "
 
 #HTML Output
 HTMLOUTPUTDIR="${MAINDIR}/www"
@@ -78,10 +89,10 @@ TMPFOLDER="$HTMLOUTPUTDIR/.temp"
 mkdir -p ${TMPFOLDER};
 
 #Trigger pflogsumm for yesterday logs (as called while prerotating logs by logrotate.d)
-#Used for everything but Per-Day Traffic Summary
+#Used for everything but Per-Day Traffic Summary (should not take so much time)
 $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d yesterday -e $LOGFILELOCATION > ${TMPFOLDER}/mailreport
 
-#Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary
+#Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary (should not take so much time)
 $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -e $LOGFILELOCATION > ${TMPFOLDER}/maillastdays
 
 #Extract from last days PFLOGSUMM
