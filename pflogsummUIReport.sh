@@ -189,7 +189,10 @@ sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' $
 #======================================================
 ReceivedEmail=$(awk '$2=="received" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeliveredEmail=$(awk '$2=="delivered" {print $1}'  ${TMPFOLDER}/GrandTotals)
-# ginotouch
+DeliveredEmailRemote=sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $1}'
+DeliveredEmailRemotePercentage=sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $3}'
+DeliveredEmailLocal=sed 's/local delivered/localdelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="localdelivered" {print $1}'
+DeliveredEmailLocalPercentage=sed 's/local delivered/localdelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="localdelivered" {print $3}'
 ForwardedEmail=$(awk '$2=="forwarded" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeferredEmailCount=$(awk '$2=="deferred" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeferredEmailDeferralsCount=$(awk '$2=="deferred" {print $3" "$4}'  ${TMPFOLDER}/GrandTotals)
@@ -843,8 +846,16 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
             <!-- column  -->
             <div class="col-lg-2 col-6">
                 <div class="">
-                    <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##ForwardedEmail##</span></h5>
-                    <span style="font-size: 0.85em;">Forwarded Mail</span>
+                    <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##DeliveredEmailRemote##</span></h5>
+                    <span style="font-size: 0.85em;">Remote Delivered ##DeliveredEmailRemotePercentage##</span>
+                </div>
+            </div>
+            <!-- column  -->
+            <!-- column  -->
+            <div class="col-lg-2 col-6">
+                <div class="">
+                    <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##DeliveredEmailLocal##</span></h5>
+                    <span style="font-size: 0.85em;">Local Delivered ##DeliveredEmailLocalPercentage##</span>
                 </div>
             </div>
             <!-- column  -->
@@ -864,6 +875,20 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
             <!-- column  -->
+        </div>
+
+        <div class="spacer15"></div>
+
+        <!-- Row -->
+        <div class="row counter-box text-center">
+            <!-- column  -->
+            <div class="col-lg-2 col-6">
+                <div class="">
+                    <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##ForwardedEmail##</span></h5>
+                    <span style="font-size: 0.85em;">Forwarded Mail</span>
+                </div>
+            </div>
+            <!-- column  -->
             <!-- column  -->
             <div class="col-lg-2 col-6">
                 <div class="">
@@ -872,12 +897,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
             <!-- column  -->
-        </div>
-
-        <div class="spacer15"></div>
-
-        <!-- Row -->
-        <div class="row counter-box text-center">
             <!-- column  -->
             <div class="col-lg-2 col-6">
                 <div class="">
@@ -905,6 +924,36 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
             <!-- column  -->
             <div class="col-lg-2 col-6">
                 <div class="">
+                    <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##SendingHostsDomainsEmail##</span></h5>
+                    <span style="font-size: 0.85em;">Sending Hosts/Domains</span>
+                </div>
+            </div>
+            <!-- column  -->
+        </div>
+
+        <div class="spacer15"></div>
+
+        <!-- Row -->
+        <div class="row counter-box text-center">
+            <!-- column  -->
+            <div class="col-lg-2 col-6">
+                <div class="">
+                    <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##SendersEmail##</span></h5>
+                    <span style="font-size: 0.85em;">Mail Senders</span>
+                </div>
+            </div>
+            <!-- column  -->
+            <!-- column  -->
+            <div class="col-lg-2 col-6">
+                <div class="">
+                    <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##RecipientsEmail##</span></h5>
+                    <span style="font-size: 0.85em;">Mail Recipients</span>
+                </div>
+            </div>
+            <!-- column  -->
+            <!-- column  -->
+            <div class="col-lg-2 col-6">
+                <div class="">
                     <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##BytesReceivedEmail##</span></h5>
                     <span style="font-size: 0.85em;">Bytes Received</span>
                 </div>
@@ -918,37 +967,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
             <!-- column  -->
-            <!-- column  -->
-            <div class="col-lg-2 col-6">
-                <div class="">
-                    <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##SendersEmail##</span></h5>
-                    <span style="font-size: 0.85em;">Mail Senders</span>
-                </div>
-            </div>
-            <!-- column  -->
-        </div>
-
-        <div class="spacer15"></div>
-
-        <!-- Row -->
-        <div class="row counter-box text-center">
-            <!-- column  -->
-            <div class="col-lg-2 col-6">
-                <div class="">
-                    <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##SendingHostsDomainsEmail##</span></h5>
-                    <span style="font-size: 0.85em;">Sending Hosts/Domains</span>
-                </div>
-            </div>
-            <!-- column  -->
-            <!-- column  -->
-            <div class="col-lg-2 col-6">
-                <div class="">
-                    <h5 class="font-mute text-mute"><span class="counter font-weight-bold">##RecipientsEmail##</span></h5>
-                    <span style="font-size: 0.85em;">Mail Recipients</span>
-                </div>
-            </div>
-            <!-- column  -->
-
         </div>
         <!-- Quick Status Blocks -->
     </div>
@@ -1446,6 +1464,10 @@ sed -i "s|##RAWFILELINK##|$RAWFILELINK|g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$C
 sed -i "s|##RAWFILENAME##|$RAWFILENAME|g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##ReceivedEmail##/$ReceivedEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##DeliveredEmail##/$DeliveredEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##DeliveredEmailRemote##/$DeliveredEmailRemote/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##DeliveredEmailRemotePercentage##/$DeliveredEmailRemotePercentage/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##DeliveredEmailLocal##/$DeliveredEmailLocal/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+sed -i "s/##DeliveredEmailLocalPercentage##/$DeliveredEmailLocalPercentage/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##ForwardedEmail##/$ForwardedEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##DeferredEmailCount##/$DeferredEmailCount/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##DeferredEmailDeferralsCount##/$DeferredEmailDeferralsCount/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
