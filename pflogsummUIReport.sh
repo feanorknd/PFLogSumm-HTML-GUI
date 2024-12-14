@@ -189,10 +189,10 @@ sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' $
 #======================================================
 ReceivedEmail=$(awk '$2=="received" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeliveredEmail=$(awk '$2=="delivered" {print $1}'  ${TMPFOLDER}/GrandTotals)
-DeliveredEmailRemote=sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $1}'
-DeliveredEmailRemotePercentage=sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $3}'
-DeliveredEmailLocal=sed 's/local delivered/localdelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="localdelivered" {print $1}'
-DeliveredEmailLocalPercentage=sed 's/local delivered/localdelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="localdelivered" {print $3}'
+DeliveredEmailRemote=$(sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $1}')
+DeliveredEmailRemotePercentage=$(sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $3}')
+DeliveredEmailLocal=$(sed 's/local delivered/localdelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="localdelivered" {print $1}')
+DeliveredEmailLocalPercentage=$(sed 's/local delivered/localdelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="localdelivered" {print $3}')
 ForwardedEmail=$(awk '$2=="forwarded" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeferredEmailCount=$(awk '$2=="deferred" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeferredEmailDeferralsCount=$(awk '$2=="deferred" {print $3" "$4}'  ${TMPFOLDER}/GrandTotals)
