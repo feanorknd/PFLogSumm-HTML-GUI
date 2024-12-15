@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Debug option - should be disabled unless required
-#set -x
+set -x
 #=====================================================================================================================
 #   DESCRIPTION  Generating a stand alone web report for postix log files, 
 #                Runs on all Linux platforms with postfix installed
@@ -32,8 +32,6 @@
 #=====================================================================================================================
 
 # VARIABLES
-DEBUG=false
-
 function showhelp {
         echo "
 How to use it:
