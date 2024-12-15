@@ -214,6 +214,7 @@ sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' $
 # Extract Information into variables -> Grand Totals
 #======================================================
 ReceivedEmail=$(awk '$2=="received" {print $1}'  ${TMPFOLDER}/GrandTotals)
+echo "ReceivedEmail= $ReceivedEmail"
 DeliveredEmail=$(awk '$2=="delivered" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeliveredEmailRemote=$(sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $1}')
 DeliveredEmailRemotePercentage=$(sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $3}')
