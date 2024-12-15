@@ -127,8 +127,6 @@ then
 	#Pick-up last modification date of file, and extract one day (supossing it is a rotated file always)
 	FILE_DATE="$(stat -c "%y" ${LOGFILE})"
 	MY_DATE="$(date --date "${FILE_DATE} -1 days" "+%Y-%m-%d")"
-	#Calculate exceeded date to grep out... those lines matching before being rotated (usually few lines)
-	EXCEEDED_DATE="$(date --date "${FILE_DATE}" "+%Y-%m-%d")"
 fi
 
 #Temporal Values
@@ -177,18 +175,19 @@ FULL_REPORT="${TMPFOLDER}/mailfullreport"
 DAILY_REPORT="${TMPFOLDER}/maildailyreport"
 
 #Trigger pflogsumm for ${DATE} logs if not requesting a weekly report
-#Used for everything but Per-Day Traffic Summary (should not take so much time)
 if ! ${WEEKLY}
 then
-	${MY_CAT} ${LOGFILE} | grep -v "${EXCEEDED_DATE}" | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d ${MY_DATE} > ${DAILY_REPORT}
+	#Used for everything but Per-Day Traffic Summary
+	${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d ${MY_DATE} > ${DAILY_REPORT}
+	#Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary
+	${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
 fi
 
-#Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary (should not take so much time)
-${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
-
-#If weekly report is requested, just make output variables equal
+#If weekly report is requested, just make one report and make output variables equal
 if ${WEEKLY}
 then
+	#Full report but grep out exceeded dated lines from log (considering there are going to be few lines from the date the rotated log was created)
+	${MY_CAT} ${LOGFILE} | grep -v -P "^${CURRENTMONTH}\s+$(date --date "${MY_DATE} + 1 days" +"%-d")" | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
 	DAILY_REPORT=${FULL_REPORT}
 fi
 
@@ -441,7 +440,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#JanuaryCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="JanuaryCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush JanuaryList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -464,7 +463,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#FebruaryCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="FebruaryCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush FebruaryList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -487,7 +486,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#MarchCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="MarchCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush MarchList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -510,7 +509,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#AprilCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="AprilCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush AprilList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -540,7 +539,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#MayCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="MayCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush MayList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -563,7 +562,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#JuneCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="JuneCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush JuneList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -586,7 +585,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#JulyCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="JulyCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush JulyList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -609,7 +608,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#AugustCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="AugustCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush AugustList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -638,7 +637,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#SeptemberCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="SeptemberCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush SeptemberList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -661,7 +660,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#OctoberCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="OctoberCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush OctoberList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -684,7 +683,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#NovemberCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="NovemberCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush NovemberList ">
                                     <!-- Dynamic Item List-->
                                 </div>
@@ -707,7 +706,7 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                         <a data-toggle="collapse" href="#DecemberCard" aria-expanded="true" class="d-block"> View
                             Reports </a>
                         <div id="DecemberCard" class="collapse hide">
-                            <div class="card-body ">
+                            <div class="card-body " style="padding: 0.3rem;">
                                 <div class="list-group list-group-flush DecemberList ">
                                     <!-- Dynamic Item List-->
                                 </div>
