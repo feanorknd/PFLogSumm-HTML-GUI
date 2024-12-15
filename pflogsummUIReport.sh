@@ -194,7 +194,7 @@ fi
 sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${FULL_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerDayTrafficSummary
 
 #Extract from today PFLOGSUMM
-sed -n '/^Grand Totals/,/^Per-Hour/p;/^Per-Hour/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
+sed -n -r '/^Grand Totals/,/^(Per-Hour|Per-Day)/p;/^(Per-Hour|Per-Day)/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
 sed -n '/^Per-Hour Traffic Summary/,/^Host\//p;/^Host\//q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficSummary
 sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p;/^Senders by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
@@ -214,7 +214,6 @@ sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' $
 # Extract Information into variables -> Grand Totals
 #======================================================
 ReceivedEmail=$(awk '$2=="received" {print $1}'  ${TMPFOLDER}/GrandTotals)
-echo "ReceivedEmail= $ReceivedEmail"
 DeliveredEmail=$(awk '$2=="delivered" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeliveredEmailRemote=$(sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $1}')
 DeliveredEmailRemotePercentage=$(sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $3}')
@@ -1489,7 +1488,6 @@ sed -i "s/##REPORTDATE##/$REPORTDATE/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CUR
 sed -i "s/##ACTIVEHOSTNAME##/$ACTIVEHOSTNAME/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s|##RAWFILELINK##|$RAWFILELINK|g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s|##RAWFILENAME##|$RAWFILENAME|g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-echo "ReceivedEmail: $ReceivedEmail"
 sed -i "s/##ReceivedEmail##/$ReceivedEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##DeliveredEmail##/$DeliveredEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##DeliveredEmailRemote##/$DeliveredEmailRemote/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
@@ -1740,7 +1738,7 @@ mv ${DAILY_REPORT} ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
 #======================================================
 
 #Finally remove temp folder
-#rm -Rf ${TMPFOLDER}
+rm -Rf ${TMPFOLDER}
 
 #Perform a clean-up of files up to 1 year in RawDir
 find ${RAWDIR}/ -type f -mtime +365 -delete
