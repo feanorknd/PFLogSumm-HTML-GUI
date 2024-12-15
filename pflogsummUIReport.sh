@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Debug option - should be disabled unless required
-set -x
+#set -x
 #=====================================================================================================================
 #   DESCRIPTION  Generating a stand alone web report for postix log files, 
 #                Runs on all Linux platforms with postfix installed
@@ -1488,6 +1488,7 @@ sed -i "s/##REPORTDATE##/$REPORTDATE/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CUR
 sed -i "s/##ACTIVEHOSTNAME##/$ACTIVEHOSTNAME/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s|##RAWFILELINK##|$RAWFILELINK|g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s|##RAWFILENAME##|$RAWFILENAME|g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
+echo "ReceivedEmail: $ReceivedEmail"
 sed -i "s/##ReceivedEmail##/$ReceivedEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##DeliveredEmail##/$DeliveredEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##DeliveredEmailRemote##/$DeliveredEmailRemote/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
