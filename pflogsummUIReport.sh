@@ -126,7 +126,7 @@ if [ "${MY_DATE}" == "weekly" ]
 then
 	WEEKLY=true
 	#Pick-up last modification date of file, and extract one day (supossing it is a rotated file always)
-	MY_DATE="$(date --date "$(stat -c "%y" ${LOGFILE}) -1 days" "+%Y-%b-%d")"
+	MY_DATE="$(date --date "$(stat -c "%y" ${LOGFILE}) -1 days" "+%Y-%m-%d")"
 fi
 
 #Temporal Values
