@@ -32,6 +32,7 @@
 #=====================================================================================================================
 
 # VARIABLES
+DEBUG=false
 
 function showhelp {
         echo "
@@ -137,7 +138,7 @@ CURRENTDAY=$(date   --date "${MY_DATE}" +"%d")
 
 if ${WEEKLY}
 then
-	CURRENTDATE="${CURRENTDAY}-weekly"
+	CURRENTDAY="${CURRENTDAY}-weekly"
 fi
 
 
