@@ -1740,7 +1740,7 @@ mv ${DAILY_REPORT} ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
 #======================================================
 
 #Finally remove temp folder
-rm -Rf ${TMPFOLDER}
+#rm -Rf ${TMPFOLDER}
 
 #Perform a clean-up of files up to 1 year in RawDir
 find ${RAWDIR}/ -type f -mtime +365 -delete
