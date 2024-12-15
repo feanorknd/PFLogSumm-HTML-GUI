@@ -1529,7 +1529,7 @@ sub by_count_then_size {
 }
 
 # return traditional and RFC3339 date strings to match in log
-sub get_datestrs {
+sub get_datestrs_original_disabled {
     my ($dateOpt) = $_[0];
 
     my $time = time();
@@ -1547,7 +1547,7 @@ sub get_datestrs {
 
 use Date::Calc qw(Add_Delta_Days Today Decode_Date_US);
 
-sub get_datestrs_disabled {
+sub get_datestrs {
     my ($dateOpt) = @_;
 
     my ($year, $month, $day);

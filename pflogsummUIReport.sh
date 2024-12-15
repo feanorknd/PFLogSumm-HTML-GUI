@@ -125,7 +125,10 @@ if [ "${MY_DATE}" == "weekly" ]
 then
 	WEEKLY=true
 	#Pick-up last modification date of file, and extract one day (supossing it is a rotated file always)
-	MY_DATE="$(date --date "$(stat -c "%y" ${LOGFILE}) -1 days" "+%Y-%m-%d")"
+	FILE_DATE="$(stat -c "%y" ${LOGFILE})"
+	MY_DATE="$(date --date "${FILE_DATE} -1 days" "+%Y-%m-%d")"
+	#Calculate exceeded date to grep out... those lines matching before being rotated (usually few lines)
+	EXCEEDED_DATE="$(date --date "${FILE_DATE}" "+%Y-%m-%d")"
 fi
 
 #Temporal Values
@@ -136,7 +139,7 @@ CURRENTDAY=$(date   --date "${MY_DATE}" +"%d")
 
 if ${WEEKLY}
 then
-	CURRENTDAY="${CURRENTDAY}-weekly"
+	CURRENTYEAR="Weekly-${CURRENTYEAR}"
 fi
 
 
@@ -177,7 +180,7 @@ DAILY_REPORT="${TMPFOLDER}/maildailyreport"
 #Used for everything but Per-Day Traffic Summary (should not take so much time)
 if ! ${WEEKLY}
 then
-	${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d ${MY_DATE} > ${DAILY_REPORT}
+	${MY_CAT} ${LOGFILE} | grep -v "${EXCEEDED_DATE}" | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d ${MY_DATE} > ${DAILY_REPORT}
 fi
 
 #Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary (should not take so much time)
