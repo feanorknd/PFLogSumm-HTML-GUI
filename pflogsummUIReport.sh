@@ -111,7 +111,7 @@ HTMLOUTPUT_INDEXDASHBOARD="index.html"
 #Create the Cache Directory if it does not exist
 DATADIR="${HTMLOUTPUTDIR}/data"
 if [ ! -d ${DATADIR} ]; then
-  mkdir ${DATADIR};
+  mkdir -p ${DATADIR};
 fi
 
 #TOOLS
