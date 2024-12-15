@@ -36,7 +36,7 @@
 function showhelp {
         echo "
 How to use it:
-  $0 -l|--logfile <path> [-d|--date <today|yesterday*|YYYY-MM-DD>] [-h|--help]
+  $0 -l|--logfile <path> [-d|--date <today|yesterday*|weekly|YYYY-MM-DD>] [-h|--help]
 
 Select any of these options:
   -l, --logfile         Mandatory, select path of the Postfix log file to analyze. Could be plain text or either a compressed gzip file (gz)
@@ -60,8 +60,8 @@ function checkarg {
                 echo ""
                 exit 1
         fi
-        if [ "$1" == "date" ] && [[ "$2" != "today" && "$2" != "yesterday" && ! "$2" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-		echo "Error: Invalid input. Please provide 'today', 'yesterday', or a date in the format YYYY-MM-DD." >&2
+        if [ "$1" == "date" ] && [[ "$2" != "today" && "$2" != "yesterday" && "$2" != "weekly" && ! "$2" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+		echo "Error: Invalid input. Please provide 'today', 'yesterday', 'weekly', or a date in the format YYYY-MM-DD." >&2
 		echo ""
 		exit 1
 	fi
@@ -96,7 +96,7 @@ else
 fi
 
 #CONSIDER DEFAULTING DATE
-[ -z ${DATE} ] && DATE="yesterday"
+[ -z ${MY_DATE} ] && MY_DATE="yesterday"
 
 #CONFIG FILE LOCATION
 MAINDIR="/home/postfix"
@@ -104,10 +104,6 @@ MAINDIR="/home/postfix"
 #CURRENT PATH OF THIS SCRIPT
 MY_PATH="$(dirname -- "${BASH_SOURCE[0]}")"
 MY_PATH="$(cd -- "$MY_PATH" && pwd)"
-
-#pflogsumm details
-PFLOGSUMMOPTIONS=" --verbose_msg_detail --zero_fill "
-PFLOGSUMMBIN="${MY_PATH}/pflogsumm.pl "
 
 #HTML Output
 HTMLOUTPUTDIR="${MAINDIR}/www"
@@ -123,11 +119,27 @@ fi
 ACTIVEHOSTNAME=$(cat /proc/sys/kernel/hostname)
 MOVEF="/usr/bin/mv -f "
 
-#Temporal Values: values for yesterday (as called while prerotating logs by logrotate.d)
+#WEEKLY REPORT
+WEEKLY=false
+
+if [ "${MY_DATE}" == "weekly" ]
+then
+	WEEKLY=true
+	#Pick-up last modification date of file, and extract one day (supossing it is a rotated file always)
+	MY_DATE="$(date --date "$(stat -c "%y" ${LOGFILE}) -1 days" "+%Y-%b-%d")"
+fi
+
+#Temporal Values
 REPORTDATE=$(date '+%Y-%m-%d %H:%M:%S')
 CURRENTYEAR=$(date  --date "${MY_DATE}" +'%Y')
 CURRENTMONTH=$(date --date "${MY_DATE}" +'%b')
 CURRENTDAY=$(date   --date "${MY_DATE}" +"%d")
+
+if ${WEEKLY}
+then
+	CURRENTDATE="${CURRENTDAY}-weekly"
+fi
+
 
 #Just verificate that there are some log lines for specified
 if [ $(${MY_CAT} ${LOGFILE} | grep -i postfix | grep -P "^${CURRENTMONTH}\s+$(date --date "${MY_DATE}" +"%-d")" | wc -l) -eq 0 ]
@@ -138,7 +150,7 @@ then
 fi
 
 #RAW LOGS Output
-RAWDIR="${HTMLOUTPUTDIR}/data/reports/${CURRENTYEAR}/${CURRENTMONTH}/${CURRENTDAY}"
+RAWDIR="${HTMLOUTPUTDIR}/data/reports"
 
 #Create the RAW LOGS folder always
 mkdir -p ${RAWDIR};
@@ -154,34 +166,49 @@ TMPFOLDER="$HTMLOUTPUTDIR/.temp"
 mkdir -p ${TMPFOLDER};
 
 
+#pflogsumm details
+PFLOGSUMMOPTIONS=" --verbose_msg_detail --zero_fill -e "
+PFLOGSUMMBIN="${MY_PATH}/pflogsumm.pl "
 
-#Trigger pflogsumm for ${DATE} logs
+#output main files
+FULL_REPORT="${TMPFOLDER}/mailfullreport"
+DAILY_REPORT="${TMPFOLDER}/maildailyreport"
+
+#Trigger pflogsumm for ${DATE} logs if not requesting a weekly report
 #Used for everything but Per-Day Traffic Summary (should not take so much time)
-${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d ${MY_DATE} -e > ${TMPFOLDER}/mailreport
+if ! ${WEEKLY}
+then
+	${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d ${MY_DATE} > ${DAILY_REPORT}
+fi
 
 #Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary (should not take so much time)
-${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -e > ${TMPFOLDER}/maillastdays
+${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
 
+#If weekly report is requested, just make output variables equal
+if ${WEEKLY}
+then
+	DAILY_REPORT=${FULL_REPORT}
+fi
 
 
 #Extract from last days PFLOGSUMM
-sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${TMPFOLDER}/maillastdays | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerDayTrafficSummary
+sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${FULL_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerDayTrafficSummary
 
 #Extract from today PFLOGSUMM
-sed -n '/^Grand Totals/,/^Per-Hour/p;/^Per-Hour/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
-sed -n '/^Per-Hour Traffic Summary/,/^Host\//p;/^Host\//q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficSummary
-sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
-sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p;/^Senders by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
-sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
-sed -n '/^Recipients by message count/,/^Senders by message size/p;/^Senders by message size/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagecount
-sed -n '/^Senders by message size/,/^Recipients by message size/p;/^Recipients by message size/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagesize
-sed -n -r '/^Recipients by message size/,/^(Messages with no size data|message deferral detail)/p;/^(Messages with no size data|message deferral detail)/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagesize
-sed -n '/^Messages with no size data/,/^message deferral detail/p;/^message deferral detail/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Messageswithnosizedata
-sed -n '/^message deferral detail/,/^message bounce detail (by relay)/p;/^message bounce detail (by relay)/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagedeferraldetail
-sed -n '/^message bounce detail (by relay)/,/^message reject detail/p;/^message reject detail/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagebouncedetaibyrelay
-sed -n '/^Warnings/,/^Fatal Errors/p;/^Fatal Errors/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/warnings
+sed -n '/^Grand Totals/,/^Per-Hour/p;/^Per-Hour/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
+sed -n '/^Per-Hour Traffic Summary/,/^Host\//p;/^Host\//q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficSummary
+sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
+sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p;/^Senders by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
+sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
+sed -n '/^Recipients by message count/,/^Senders by message size/p;/^Senders by message size/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagecount
+sed -n '/^Senders by message size/,/^Recipients by message size/p;/^Recipients by message size/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagesize
+sed -n -r '/^Recipients by message size/,/^(Messages with no size data|message deferral detail)/p;/^(Messages with no size data|message deferral detail)/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagesize
+sed -n '/^Messages with no size data/,/^message deferral detail/p;/^message deferral detail/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Messageswithnosizedata
+sed -n '/^message deferral detail/,/^message bounce detail (by relay)/p;/^message bounce detail (by relay)/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagedeferraldetail
+sed -n '/^message bounce detail (by relay)/,/^message reject detail/p;/^message reject detail/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagebouncedetaibyrelay
+sed -n '/^Warnings/,/^Fatal Errors/p;/^Fatal Errors/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/warnings
 
-sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' ${TMPFOLDER}/mailreport | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/FatalErrors
+sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/FatalErrors
 
 
 #======================================================
@@ -1703,7 +1730,7 @@ done
 #======================================================
 
 #Store raw file
-mv ${TMPFOLDER}/mailreport ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
+mv ${DAILY_REPORT} ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
 
 
 
