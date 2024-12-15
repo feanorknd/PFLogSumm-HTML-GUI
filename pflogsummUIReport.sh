@@ -197,7 +197,7 @@ sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${FULL_REPORT} | s
 
 #Extract from today PFLOGSUMM
 sed -n -r '/^Grand Totals/,/^(Per-Hour|Per-Day)/p;/^(Per-Hour|Per-Day)/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
-sed -n '/^Per-Hour Traffic Summary/,/^Host\//p;/^Host\//q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficSummary
+sed -n -r '/^(Per-Hour Traffic Summary|Per-Hour Traffic Daily Average)/,/^Host\//p;/^Host\//q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficSummary
 sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p;/^Senders by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
@@ -1740,7 +1740,7 @@ mv ${DAILY_REPORT} ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
 #======================================================
 
 #Finally remove temp folder
-#rm -Rf ${TMPFOLDER}
+rm -Rf ${TMPFOLDER}
 
 #Perform a clean-up of files up to 1 year in RawDir
 find ${RAWDIR}/ -type f -mtime +365 -delete
