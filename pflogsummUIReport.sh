@@ -831,20 +831,21 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
 
 
     <!-- Server/Report INFO -->
-    <div class="container rounded shadow-sm  p-3 my-3 text-white-50 bg-dark ">
-        <div class="row">
-            <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-sm-12">
+
+    <div class="container rounded shadow-sm p-3 my-3 text-white bg-dark">
+        <div class="row text-center">
+                    <div class="col-lg-3">
                         <div> <strong>Hostname</strong> </div>
                         <h6 class="mb-3">##ACTIVEHOSTNAME##</h6>
+                    </div>
+                    <div class="col-lg-3">
                         <div> <strong>Report Date</strong> </div>
                         <div>##REPORTDATE##</div>
-                        <div class="spacer15"></div>
-                        <div>Raw file available in: <a href="##RAWFILELINK##">##RAWFILENAME##</a></div>
                     </div>
-                </div>
-            </div>
+                    <div class="col-lg-3">
+                        <div> <strong>Raw file</strong> </div>
+                        <div><a href="##RAWFILELINK##">##RAWFILENAME##</a></div>
+                    </div>
         </div>
     </div>
     <!-- Server/Report INFO -->
@@ -852,7 +853,7 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
     <br>
 
     <!-- Quick Status Blocks -->
-    <div class="container rounded shadow-sm  text-white bg-dark ">
+    <div class="container rounded shadow-sm p-3 my-3 text-white bg-dark ">
         <!-- Row -->
         <div class="row counter-box text-center">
             <!-- column  -->
