@@ -2,10 +2,10 @@
 # Debug option - should be disabled unless required
 #set -x
 #=====================================================================================================================
-#   DESCRIPTION  Generating a stand alone web report for postix log files, 
+#   DESCRIPTION  Generating a stand alone web report for postix log files,
 #                Runs on all Linux platforms with postfix installed
 #   AUTHOR       Riaan Pretorius <pretorius.riaan@gmail.com>
-#   IDIOCRACY    yes.. i know.. bash??? WTF was i thinking?? Well it works, runs every 
+#   IDIOCRACY    yes.. i know.. bash??? WTF was i thinking?? Well it works, runs every
 #                where and it is portable
 #
 #   https://en.wikipedia.org/wiki/MIT_License
@@ -15,19 +15,19 @@
 #
 #   Copyright (c) 2018 Riaan Pretorius
 #
-#   Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
-#   and associated documentation files  (the "Software"), to deal in the Software without restriction, 
-#   including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-#   and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, 
+#   Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+#   and associated documentation files  (the "Software"), to deal in the Software without restriction,
+#   including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#   and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
 #   subject to the following conditions:
 #
-#   The above copyright notice and this permission notice shall be included in all copies or substantial 
+#   The above copyright notice and this permission notice shall be included in all copies or substantial
 #   portions of the Software.
 #
-#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT 
-#   NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-#   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
-#   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION  WITH THE SOFTWARE 
+#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+#   NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+#   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION  WITH THE SOFTWARE
 #   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #=====================================================================================================================
 
@@ -206,17 +206,10 @@ sed -n -r '/^(Per-Hour Traffic Summary|Per-Hour Traffic Daily Average)/,/^Host\/
 sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 sed -n '/^Host\/Domain Summary\: Messages Received/,/^Remote Domains by message count/p;/^Remote Domains by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 
-
-sed -n '/^Remote Domains by message count/,/^Remote Recipients by message count/p;/^Remote Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/RemoteDomains.debug
-sed -n '/^Remote Recipients by message count/,/^Local Domains by message count/p;/^Local Domains by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/RemoteRecipients.debug
-sed -n '/^Local Domains by message count/,/^Local Recipients by message count/p;/^Local Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/LocalDomains.debug
-sed -n '/^Local Recipients by message count/,/^Senders by message count/p;/^Senders by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/LocalRecipients.debug
-
-
-sed -n '/^Remote Domains by message count/,/^Remote Recipients by message count/p;/^Remote Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/RemoteDomains
-sed -n '/^Remote Recipients by message count/,/^Local Domains by message count/p;/^Local Domains by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/RemoteRecipients
-sed -n '/^Local Domains by message count/,/^Local Recipients by message count/p;/^Local Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/LocalDomains
-sed -n '/^Local Recipients by message count/,/^Senders by message count/p;/^Senders by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/LocalRecipients
+sed -n '/^Remote Domains by message count/,/^Remote Recipients by message count/p;/^Remote Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d'  > ${TMPFOLDER}/RemoteDomains
+sed -n '/^Remote Recipients by message count/,/^Local Domains by message count/p;/^Local Domains by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d'  > ${TMPFOLDER}/RemoteRecipients
+sed -n '/^Local Domains by message count/,/^Local Recipients by message count/p;/^Local Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d'  > ${TMPFOLDER}/LocalDomains
+sed -n '/^Local Recipients by message count/,/^Senders by message count/p;/^Senders by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d'  > ${TMPFOLDER}/LocalRecipients
 
 sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
 sed -n '/^Recipients by message count/,/^Senders by message size/p;/^Senders by message size/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagecount
@@ -1693,7 +1686,7 @@ sed -i "s/##RecipientHostsDomainsEmail##/$RecipientHostsDomainsEmail/g" $DATADIR
 sed -i "/##PerDayTrafficSummaryTable##/ {
 r ${TMPFOLDER}/PerDayTrafficSummary
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 
 #======================================================
@@ -1702,7 +1695,7 @@ d
 sed -i "/##PerHourTrafficSummaryTable##/ {
 r ${TMPFOLDER}/PerHourTrafficSummary
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 
 #======================================================
@@ -1711,7 +1704,7 @@ d
 sed -i "/##HostDomainSummaryMessageDelivery##/ {
 r ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 #======================================================
 # Replace Placeholders with values - Table HostDomainSummaryMessagesReceived
@@ -1719,7 +1712,7 @@ d
 sed -i "/##HostDomainSummaryMessagesReceived##/ {
 r ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 #======================================================
 # Replace Placeholders with values - Table RemoteDomains
@@ -1759,7 +1752,7 @@ d
 sed -i "/##Sendersbymessagecount##/ {
 r ${TMPFOLDER}/Sendersbymessagecount
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 #======================================================
 # Replace Placeholders with values - Table RecipientsbyMessageCount
@@ -1767,7 +1760,7 @@ d
 sed -i "/##RecipientsbyMessageCount##/ {
 r ${TMPFOLDER}/Recipientsbymessagecount
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 #======================================================
 # Replace Placeholders with values - Table SendersbyMessageSize
@@ -1775,7 +1768,7 @@ d
 sed -i "/##SendersbyMessageSize##/ {
 r ${TMPFOLDER}/Sendersbymessagesize
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 #======================================================
 # Replace Placeholders with values - Table Recipientsbymessagesize
@@ -1783,7 +1776,7 @@ d
 sed -i "/##Recipientsbymessagesize##/ {
 r ${TMPFOLDER}/Recipientsbymessagesize
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 #======================================================
 # Replace Placeholders with values - Table Messageswithnosizedata
@@ -1791,7 +1784,7 @@ d
 sed -i "/##Messageswithnosizedata##/ {
 r ${TMPFOLDER}/Messageswithnosizedata
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 
 #======================================================
@@ -1881,54 +1874,54 @@ for filename in $DATADIR/*.html; do
     filenameWithoutExtension="${filenameWithExtOnly%.*}"
  
     case $filenameWithExtOnly in
-        *Jan* )  
+        *Jan* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/jan_rpt.html
         ;;
 
-        *Feb* )  
+        *Feb* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/feb_rpt.html
         ;;
 
-        *Mar* )  
+        *Mar* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/mar_rpt.html
         ;;
 
-        *Apr* )  
+        *Apr* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/apr_rpt.html
         ;;
 
-        *May* )  
+        *May* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/may_rpt.html
         ;;
 
-        *Jun* )  
+        *Jun* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/jun_rpt.html
-        ;;                                        
+        ;;
 
-        *Jul* )  
+        *Jul* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/jul_rpt.html
         ;;
 
-        *Aug* )  
+        *Aug* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/aug_rpt.html
         ;;
 
-        *Sep* )  
+        *Sep* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/sep_rpt.html
         ;;
 
-        *Oct* )  
+        *Oct* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/oct_rpt.html
-        ;;        
+        ;;
 
-        *Nov* )  
+        *Nov* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/nov_rpt.html
-        ;;      
+        ;;
 
-        *Dec* )  
+        *Dec* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/dec_rpt.html
-        ;;          
-    esac  
+        ;;
+    esac
 done
 
 
@@ -1946,7 +1939,7 @@ cp ${DAILY_REPORT} ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
 #======================================================
 
 #Finally remove temp folder
-#rm -Rf ${TMPFOLDER}
+rm -Rf ${TMPFOLDER}
 
 #Perform a clean-up of files up to 1 year in RawDir
 find ${RAWDIR}/ -type f -mtime +365 -delete
