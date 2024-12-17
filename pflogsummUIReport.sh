@@ -118,6 +118,11 @@ fi
 ACTIVEHOSTNAME=$(cat /proc/sys/kernel/hostname)
 MOVEF="/usr/bin/mv -f "
 
+#FETCH LOGFILE DATE
+FILE_DATE="$(stat -c "%y" ${LOGFILE})"
+FILE_MONTH=$(date --date "${FILE_DATE}" +'%b')
+
+
 #WEEKLY REPORT
 WEEKLY=false
 
@@ -125,7 +130,6 @@ if [ "${MY_DATE}" == "weekly" ]
 then
 	WEEKLY=true
 	#Pick-up last modification date of file, and extract one day (supossing it is a rotated file always)
-	FILE_DATE="$(stat -c "%y" ${LOGFILE})"
 	MY_DATE="$(date --date "${FILE_DATE} -1 days" "+%Y-%m-%d")"
 fi
 
@@ -180,7 +184,8 @@ then
 	#Used for everything but Per-Day Traffic Summary
 	${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d ${MY_DATE} > ${DAILY_REPORT}
 	#Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary
-	${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
+	#but grep out exceeded dated lines from log (considering there are going to be few lines from the date the rotated log was created)
+	${MY_CAT} ${LOGFILE} | grep -v -P "^${CURRENTMONTH}\s+$(date --date "${FILE_DATE}" +"%-d")" | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
 fi
 
 #If weekly report is requested, just make one report and make output variables equal
