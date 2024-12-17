@@ -185,7 +185,7 @@ then
 	${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d ${MY_DATE} > ${DAILY_REPORT}
 	#Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary
 	#but grep out exceeded dated lines from log (considering there are going to be few lines from the date the rotated log was created)
-	${MY_CAT} ${LOGFILE} | grep -v -P "^${CURRENTMONTH}\s+$(date --date "${FILE_DATE}" +"%-d")" | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
+	${MY_CAT} ${LOGFILE} | grep -v -P "^${FILE_MONTH}\s+$(date --date "${FILE_DATE}" +"%-d")" | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
 fi
 
 #If weekly report is requested, just make one report and make output variables equal
