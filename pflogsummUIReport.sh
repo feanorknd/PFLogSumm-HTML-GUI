@@ -1937,7 +1937,7 @@ done
 #======================================================
 
 #Store raw file
-mv ${DAILY_REPORT} ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
+cp ${DAILY_REPORT} ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
 
 
 
