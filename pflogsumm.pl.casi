@@ -438,13 +438,9 @@ $thisYr += 1900;
 # Variables used only in main loop
 #
 # Per-user data
-my (%recipUserLocal, $recipUserLocalCnt);
-my (%recipUserRemote, $recipUserRemoteCnt);
 my (%recipUser, $recipUserCnt);
 my (%sendgUser, $sendgUserCnt);
 # Per-domain data
-my (%recipDomLocal, $recipDomLocalCnt);   # recipient domain data
-my (%recipDomRemote, $recipDomRemoteCnt);   # recipient domain data
 my (%recipDom, $recipDomCnt);	# recipient domain data
 my (%sendgDom, $sendgDomCnt);	# sending domain data
 # Indexes for arrays in above
@@ -862,18 +858,10 @@ while(<>) {
                 #print STDERR "Delivered: $relay\n";
 		if($relay =~ /dovecot/i) {
 		    ++$msgsDlvrdLocal;
-                    ++$recipUserLocalCnt unless(${$recipUserLocal{$addr}}[$msgCntI]);
-                    ++${$recipUserLocal{$addr}}[$msgCntI];
-                    ++$recipDomLocalCnt unless(${$recipDomLocal{$domAddr}}[$msgCntI]);
-                    ++${$recipDomLocal{$domAddr}}[$msgCntI];
 		#    print STDERR "Now msgsDlvrdLocal = $msgsDlvrd\n";
 		#    print STDERR "Now msgsDlvrdLocal = $msgsDlvrdLocal\n";
 		} else {
 		    ++$msgsDlvrdRemote;
-                    ++$recipUserRemoteCnt unless(${$recipUserRemote{$addr}}[$msgCntI]);
-                    ++${$recipUserRemote{$addr}}[$msgCntI];
-                    ++$recipDomRemoteCnt unless(${$recipDomRemote{$domAddr}}[$msgCntI]);
-                    ++${$recipDomRemote{$domAddr}}[$msgCntI];
 		#    print STDERR "Now msgsDlvrdLocal = $msgsDlvrd\n";
 		#    print STDERR "Now msgsDlvrdRemote = $msgsDlvrdRemote\n";
 		}
@@ -1030,10 +1018,6 @@ if(defined($opts{'smtpdStats'})) {
     print_domain_smtpd_summary(\%smtpdPerDom, $opts{'h'});
 }
 
-print_user_data(\%recipDomRemote, "Remote Recipients Domains by message count", $msgCntI, $opts{'u'}, $opts{'q'});
-print_user_data(\%recipDomLocal, "Local Recipients Domains by message count", $msgCntI, $opts{'u'}, $opts{'q'});
-print_user_data(\%recipUserRemote, "Remote Recipients by message count", $msgCntI, $opts{'u'}, $opts{'q'});
-print_user_data(\%recipUserLocal, "Local Recipients by message count", $msgCntI, $opts{'u'}, $opts{'q'});
 print_user_data(\%sendgUser, "Senders by message count", $msgCntI, $opts{'u'}, $opts{'q'});
 print_user_data(\%recipUser, "Recipients by message count", $msgCntI, $opts{'u'}, $opts{'q'});
 print_user_data(\%sendgUser, "Senders by message size", $msgSizeI, $opts{'u'}, $opts{'q'});
