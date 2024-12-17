@@ -206,6 +206,13 @@ sed -n -r '/^(Per-Hour Traffic Summary|Per-Hour Traffic Daily Average)/,/^Host\/
 sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 sed -n '/^Host\/Domain Summary\: Messages Received/,/^Remote Domains by message count/p;/^Remote Domains by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 
+
+sed -n '/^Remote Domains by message count/,/^Remote Recipients by message count/p;/^Remote Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/RemoteDomains.debug
+sed -n '/^Remote Recipients by message count/,/^Local Domains by message count/p;/^Local Domains by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/RemoteRecipients.debug
+sed -n '/^Local Domains by message count/,/^Local Recipients by message count/p;/^Local Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/LocalDomains.debug
+sed -n '/^Local Recipients by message count/,/^Senders by message count/p;/^Senders by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/LocalRecipients.debug
+
+
 sed -n '/^Remote Domains by message count/,/^Remote Recipients by message count/p;/^Remote Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/RemoteDomains
 sed -n '/^Remote Recipients by message count/,/^Local Domains by message count/p;/^Local Domains by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/RemoteRecipients
 sed -n '/^Local Domains by message count/,/^Local Recipients by message count/p;/^Local Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/LocalDomains
@@ -1939,7 +1946,7 @@ mv ${DAILY_REPORT} ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
 #======================================================
 
 #Finally remove temp folder
-rm -Rf ${TMPFOLDER}
+#rm -Rf ${TMPFOLDER}
 
 #Perform a clean-up of files up to 1 year in RawDir
 find ${RAWDIR}/ -type f -mtime +365 -delete
