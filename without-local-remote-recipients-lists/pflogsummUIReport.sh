@@ -204,13 +204,7 @@ sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${FULL_REPORT} | s
 sed -n -r '/^Grand Totals/,/^(Per-Hour|Per-Day)/p;/^(Per-Hour|Per-Day)/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
 sed -n -r '/^(Per-Hour Traffic Summary|Per-Hour Traffic Daily Average)/,/^Host\//p;/^Host\//q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficSummary
 sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
-sed -n '/^Host\/Domain Summary\: Messages Received/,/^Remote Domains by message count/p;/^Remote Domains by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
-
-sed -n '/^Remote Domains by message count/,/^Remote Recipients by message count/p;/^Remote Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/RemoteDomains
-sed -n '/^Remote Recipients by message count/,/^Local Domains by message count/p;/^Local Domains by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/RemoteRecipients
-sed -n '/^Local Domains by message count/,/^Local Recipients by message count/p;/^Local Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/LocalDomains
-sed -n '/^Local Recipients by message count/,/^Senders by message count/p;/^Senders by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/LocalRecipients
-
+sed -n '/^Host\/Domain Summary\: Messages Received/,/^Senders by message count/p;/^Senders by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
 sed -n '/^Recipients by message count/,/^Senders by message size/p;/^Senders by message size/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagecount
 sed -n '/^Senders by message size/,/^Recipients by message size/p;/^Recipients by message size/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagesize
@@ -303,61 +297,6 @@ do
     echo $HostDomainSummaryMessagesReceivedTable >> ${TMPFOLDER}/HostDomainSummaryMessagesReceived_tmp
 done < ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 $MOVEF ${TMPFOLDER}/HostDomainSummaryMessagesReceived_tmp ${TMPFOLDER}/HostDomainSummaryMessagesReceived &> /dev/null
-
-#======================================================
-# Extract Information into variable -> Remote Domains
-#======================================================
-while IFS= read -r var
-do
-    RemoteDomainscountTable=""
-    RemoteDomainscountTable+="<tr>"
-    RemoteDomainscountTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>"}')
-    RemoteDomainscountTable+="</tr>"
-    echo $RemoteDomainscountTable >> ${TMPFOLDER}/RemoteDomains_tmp
-done < ${TMPFOLDER}/RemoteDomains
-$MOVEF  ${TMPFOLDER}/RemoteDomains_tmp ${TMPFOLDER}/RemoteDomains &> /dev/null
-
-
-#======================================================
-# Extract Information into variable -> Remote Recipients
-#======================================================
-while IFS= read -r var
-do
-    RemoteRecipientscountTable=""
-    RemoteRecipientscountTable+="<tr>"
-    RemoteRecipientscountTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>"}')
-    RemoteRecipientscountTable+="</tr>"
-    echo $RemoteRecipientscountTable >> ${TMPFOLDER}/RemoteRecipients_tmp
-done < ${TMPFOLDER}/RemoteRecipients
-$MOVEF  ${TMPFOLDER}/RemoteRecipients_tmp ${TMPFOLDER}/RemoteRecipients &> /dev/null
-
-
-#======================================================
-# Extract Information into variable -> Local Domains
-#======================================================
-while IFS= read -r var
-do
-    LocalDomainscountTable=""
-    LocalDomainscountTable+="<tr>"
-    LocalDomainscountTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>"}')
-    LocalDomainscountTable+="</tr>"
-    echo $LocalDomainscountTable >> ${TMPFOLDER}/LocalDomains_tmp
-done < ${TMPFOLDER}/LocalDomains
-$MOVEF  ${TMPFOLDER}/LocalDomains_tmp ${TMPFOLDER}/LocalDomains &> /dev/null
-
-
-#======================================================
-# Extract Information into variable -> Local Recipients
-#======================================================
-while IFS= read -r var
-do
-    LocalRecipientscountTable=""
-    LocalRecipientscountTable+="<tr>"
-    LocalRecipientscountTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>"}')
-    LocalRecipientscountTable+="</tr>"
-    echo $LocalRecipientscountTable >> ${TMPFOLDER}/LocalRecipients_tmp
-done < ${TMPFOLDER}/LocalRecipients
-$MOVEF  ${TMPFOLDER}/LocalRecipients_tmp ${TMPFOLDER}/LocalRecipients &> /dev/null
 
 
 #======================================================
@@ -1179,106 +1118,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
         </div>
 
         <div class="my-3 p-3 bg-white rounded shadow-sm">
-            <a data-toggle="collapse" href="#RemoteDomains" role="button" aria-expanded="false" aria-controls="RemoteDomains">
-                <h6 class="border-bottom border-gray pb-2 mb-0">Remote Domains by Message Count</h6>
-            </a>
-            <div class="container collapse" id="RemoteDomains">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="table-responsive">
-                            <table class="table-responsive table-striped table-sm">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Message Count</th>
-                                        <th scope="col">Remote Domain</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ##RemoteDomains##
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="my-3 p-3 bg-white rounded shadow-sm">
-            <a data-toggle="collapse" href="#RemoteRecipients" role="button" aria-expanded="false" aria-controls="RemoteRecipients">
-                <h6 class="border-bottom border-gray pb-2 mb-0">Remote Recipients by Message Count</h6>
-            </a>
-            <div class="container collapse" id="RemoteRecipients">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="table-responsive">
-                            <table class="table-responsive table-striped table-sm">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Message Count</th>
-                                        <th scope="col">Remote Recipient</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ##RemoteRecipients##
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="my-3 p-3 bg-white rounded shadow-sm">
-            <a data-toggle="collapse" href="#LocalDomains" role="button" aria-expanded="false" aria-controls="LocalDomains">
-                <h6 class="border-bottom border-gray pb-2 mb-0">Local Domains by Message Count</h6>
-            </a>
-            <div class="container collapse" id="LocalDomains">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="table-responsive">
-                            <table class="table-responsive table-striped table-sm">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Message Count</th>
-                                        <th scope="col">Local Domain</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ##LocalDomains##
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="my-3 p-3 bg-white rounded shadow-sm">
-            <a data-toggle="collapse" href="#LocalRecipients" role="button" aria-expanded="false" aria-controls="LocalRecipients">
-                <h6 class="border-bottom border-gray pb-2 mb-0">Local Recipients by Message Count</h6>
-            </a>
-            <div class="container collapse" id="LocalRecipients">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="table-responsive">
-                            <table class="table-responsive table-striped table-sm">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Message Count</th>
-                                        <th scope="col">Local Recipient</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ##LocalRecipients##
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#SendersbyMessageSize" role="button" aria-expanded="false" aria-controls="SendersbyMessageSize">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Senders by Message Size</h6>
             </a>
@@ -1713,38 +1552,6 @@ sed -i "/##HostDomainSummaryMessagesReceived##/ {
 r ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
-
-#======================================================
-# Replace Placeholders with values - Table RemoteDomains
-#======================================================
-sed -i "/##RemoteDomains##/ {
-r ${TMPFOLDER}/RemoteDomains
-d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-
-#======================================================
-# Replace Placeholders with values - Table RemoteRecipients
-#======================================================
-sed -i "/##RemoteRecipients##/ {
-r ${TMPFOLDER}/RemoteRecipients
-d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-
-#======================================================
-# Replace Placeholders with values - Table LocalDomains
-#======================================================
-sed -i "/##LocalDomains##/ {
-r ${TMPFOLDER}/LocalDomains
-d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
-
-#======================================================
-# Replace Placeholders with values - Table LocalRecipients
-#======================================================
-sed -i "/##LocalRecipients##/ {
-r ${TMPFOLDER}/LocalRecipients
-d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
 #======================================================
 # Replace Placeholders with values - Table Sendersbymessagecount
