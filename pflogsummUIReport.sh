@@ -1827,18 +1827,18 @@ d
 #======================================================
 # Count Existing Reports - For Dashboard Display
 #======================================================
-JanRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Jan*.html | wc -l)
-FebRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Feb*.html | wc -l)
-MarRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Mar*.html | wc -l)
-AprRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Apr*.html | wc -l)
-MayRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-May*.html | wc -l)
-JunRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Jun*.html | wc -l)
-JulRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Jul*.html | wc -l)
-AugRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Aug*.html | wc -l)
-SepRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Sep*.html | wc -l)
-OctRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Oct*.html | wc -l)
-NovRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Nov*.html | wc -l)
-DecRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name *-Dec*.html | wc -l)
+JanRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Jan*.html" | wc -l)
+FebRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Feb*.html" | wc -l)
+MarRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Mar*.html" | wc -l)
+AprRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Apr*.html" | wc -l)
+MayRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-May*.html" | wc -l)
+JunRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Jun*.html" | wc -l)
+JulRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Jul*.html" | wc -l)
+AugRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Aug*.html" | wc -l)
+SepRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Sep*.html" | wc -l)
+OctRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Oct*.html" | wc -l)
+NovRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Nov*.html" | wc -l)
+DecRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Dec*.html" | wc -l)
 
 
 #======================================================
