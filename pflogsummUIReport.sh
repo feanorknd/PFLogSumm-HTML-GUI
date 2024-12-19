@@ -831,7 +831,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Postfix Report">
     <meta name="author" content="">
-    <link rel="icon" href="http://www.postfix.org/favicon.ico">
 
     <title>Postfix PFLOGSUMM Report</title>
 
