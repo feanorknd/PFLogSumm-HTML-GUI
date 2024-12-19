@@ -1,35 +1,7 @@
 #!/usr/bin/env bash
+
 # Debug option - should be disabled unless required
 #set -x
-#=====================================================================================================================
-#   DESCRIPTION  Generating a stand alone web report for postix log files,
-#                Runs on all Linux platforms with postfix installed
-#   AUTHOR       Riaan Pretorius <pretorius.riaan@gmail.com>
-#   IDIOCRACY    yes.. i know.. bash??? WTF was i thinking?? Well it works, runs every
-#                where and it is portable
-#
-#   https://en.wikipedia.org/wiki/MIT_License
-#
-#   LICENSE
-#   MIT License
-#
-#   Copyright (c) 2018 Riaan Pretorius
-#
-#   Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-#   and associated documentation files  (the "Software"), to deal in the Software without restriction,
-#   including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-#   and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-#   subject to the following conditions:
-#
-#   The above copyright notice and this permission notice shall be included in all copies or substantial
-#   portions of the Software.
-#
-#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
-#   NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-#   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-#   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION  WITH THE SOFTWARE
-#   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#=====================================================================================================================
 
 # VARIABLES
 function showhelp {
@@ -443,13 +415,12 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Postfix PFLOGSUMM Dashboard Index">
     <meta name="author" content="Riaan Pretorius">
-    <link rel="icon" href="http://www.postfix.org/favicon.ico">
 
     <title>Postfix PFLOGSUMM Dashboard Index</title>
 
     <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
+    <link rel="stylesheet" href="/statics/bootstrap.min.css">
+    <link rel="stylesheet" href="/statics/font-awesome.css">
 
 
     <style>
@@ -798,8 +769,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
             <p>&copy;
                 <script>new Date().getFullYear() > 2010 && document.write(new Date().getFullYear());</script>
                 <br>
-                <span>Powered by <a href="https://github.com/KTamas/pflogsumm">PFLOGSUMM</a> </span> /
-                <span><a href="https://github.com/RiaanPretoriusSA/PFLogSumm-HTML-GUI">PFLOGSUMM HTML UI Report</a>
+                <span>Powered by <a href="/statics/pflogsumm">PFLOGSUMM</a> </span> /
+                <span><a href="/statics/PFLogSumm-HTML-GUI">PFLOGSUMM HTML UI Report</a>
                 </span>
             </p>
         </div>
@@ -865,10 +836,10 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
     <title>Postfix PFLOGSUMM Report</title>
 
     <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns"
+    <link rel="stylesheet" href="/statics/bootstrap.min.css">
+    <link rel="stylesheet" href="/statics/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns"
         crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.css">
+    <link rel="stylesheet" href="/statics/prism.css">
 
 
 
@@ -1530,8 +1501,8 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
             <p>&copy;
                 <script>new Date().getFullYear() > 2010 && document.write(new Date().getFullYear());</script>
                 <br>
-                <span>Powered by <a href="https://github.com/KTamas/pflogsumm">PFLOGSUMM</a> </span> /
-                <span><a href="https://github.com/RiaanPretoriusSA/PFLogSumm-HTML-GUI">PFLOGSUMM HTML UI Report</a>
+                <span>Powered by <a href="/statics/pflogsumm">PFLOGSUMM</a> </span> /
+                <span><a href="/statics/PFLogSumm-HTML-GUI">PFLOGSUMM HTML UI Report</a>
                 </span>
             </p>
         </div>
