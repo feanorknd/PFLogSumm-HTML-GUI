@@ -41,8 +41,8 @@ function checkarg {
 while [[ "$#" > 0 ]]; do
   case "$1" in
     -l|--logfile)       checkarg "logfile" "$2" ; LOGFILE="$2" ; shift;;
-    -d|--date)          checkarg "date" "$2"    ; MY_DATE="$2"    ; shift;;
-    -h|--help)          HELP=true               ;;
+    -d|--date)          checkarg "date" "$2"    ; MY_DATE="$2" ; shift;;
+    -h|--help)          showhelp                ; exit 1       ;;
     *|-*|--*)           showhelp                ; exit 1       ;;
   esac
   shift
