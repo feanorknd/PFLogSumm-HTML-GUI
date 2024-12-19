@@ -769,9 +769,6 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
             <p>&copy;
                 <script>new Date().getFullYear() > 2010 && document.write(new Date().getFullYear());</script>
                 <br>
-                <span>Powered by <a href="/statics/pflogsumm">PFLOGSUMM</a> </span> /
-                <span><a href="/statics/PFLogSumm-HTML-GUI">PFLOGSUMM HTML UI Report</a>
-                </span>
             </p>
         </div>
     </footer>
