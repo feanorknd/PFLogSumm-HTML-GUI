@@ -810,10 +810,10 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="statics/jquery.js"></script>
-    <script src="statics/bootstrap.min.js"></script>
+    <script src="/statics/jquery.js"></script>
+    <script src="/statics/bootstrap.min.js"></script>
     <!-- Popper.JS -->
-    <script src="statics/popper.min.js"></script>
+    <script src="/statics/popper.min.js"></script>
 
 </body>
 
@@ -1543,28 +1543,28 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="statics/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    <script src="/statics/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
         crossorigin="anonymous"></script>
-    <script src="statics/popper.min.js"></script>
-    <script src="statics/bootstrap.min.js"></script>
-    <script src="statics/jquery.waypoints.js"></script>
-    <script src="statics/jquery.counterup.js"></script>
+    <script src="/statics/popper.min.js"></script>
+    <script src="/statics/bootstrap.min.js"></script>
+    <script src="/statics/jquery.waypoints.js"></script>
+    <script src="/statics/jquery.counterup.js"></script>
 
 
     <!-- Icons -->
-    <script src="statics/feather.min.js"></script>
+    <script src="/statics/feather.min.js"></script>
     <script>
         feather.replace()
     </script>
 
     <!-- Graphs -->
-    <script src="statics/highcharts.js"></script>
-    <script src="statics/data.js"></script>
-    <script src="statics/exporting.js"></script>
-    <script src="statics/export-data.js"></script>
+    <script src="/statics/highcharts.js"></script>
+    <script src="/statics/data.js"></script>
+    <script src="/statics/exporting.js"></script>
+    <script src="/statics/export-data.js"></script>
 
     <!-- Code Highlight-->
-    <script src="statics/prism.min.js"></script>
+    <script src="/statics/prism.min.js"></script>
 
 
 
