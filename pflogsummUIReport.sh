@@ -211,7 +211,8 @@ sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' $
 #============================================================
 if ${TODAY}
 then
-	cat ${TMPFOLDER}/PerHourTrafficSummary | grep "$(date "+%H")00-$(date -d "+1 hour" "+%H")00" | awk '{print $4}' > ${REMOTEDLVD_OUTPUT}
+	RemoteDlvdPerHour="$(cat ${TMPFOLDER}/PerHourTrafficSummary | grep "$(date "+%H")00-$(date -d "+1 hour" "+%H")00" | awk '{print $4}')"
+	echo "RemoteDlvdPerHour:${RemoteDlvdPerHour}" > ${REMOTEDLVD_OUTPUT}
 fi
 
 
