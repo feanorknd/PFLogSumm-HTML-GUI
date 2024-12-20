@@ -817,7 +817,6 @@ HTMLOUTPUTINDEXDASHBOARD
 # Using embedded HTML makes the script highly portable
 # SED search and replace tags to fill the content
 #======================================================
-#2018-Nov-17.html
 
 cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOARD'
 <!doctype html>
