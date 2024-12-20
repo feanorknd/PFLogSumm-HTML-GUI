@@ -483,8 +483,6 @@ $msgsDlvrd = $msgsRjctd = $msgsDscrdd = $msgsDlvrdRemote = $msgsDlvrdLocal = 0;
 # Init messages received and delivered per hour
 my @rcvPerHr = (0) x 24;
 my @dlvPerHr = @rcvPerHr;
-my @dlvRemotePerHr = @rcvPerHr;
-my @dlvLocalPerHr = @rcvPerHr;
 my @dfrPerHr = @rcvPerHr;	# defers per hour
 my @bncPerHr = @rcvPerHr;	# bounces per hour
 my @rejPerHr = @rcvPerHr;	# rejects per hour
@@ -863,7 +861,6 @@ while(<>) {
 
                 #print STDERR "Delivered: $relay\n";
 		if($relay =~ /dovecot/i) {
-                    ++$dlvLocalPerHr[$msgHr];
 		    ++$msgsDlvrdLocal;
                     ++$recipUserLocalCnt unless(${$recipUserLocal{$addr}}[$msgCntI]);
                     ++${$recipUserLocal{$addr}}[$msgCntI];
@@ -872,7 +869,6 @@ while(<>) {
 		#    print STDERR "Now msgsDlvrdLocal = $msgsDlvrd\n";
 		#    print STDERR "Now msgsDlvrdLocal = $msgsDlvrdLocal\n";
 		} else {
-                    ++$dlvRemovePerHr[$msgHr];
 		    ++$msgsDlvrdRemote;
                     ++$recipUserRemoteCnt unless(${$recipUserRemote{$addr}}[$msgCntI]);
                     ++${$recipUserRemote{$addr}}[$msgCntI];
@@ -1022,7 +1018,8 @@ print "\n";
 print_problems_reports() if(defined($opts{'pf'}));
 
 print_per_day_summary(\%msgsPerDay) if($dayCnt > 1);
-print_per_hour_summary(\@rcvPerHr, \@dlvPerHr, \@dlvRemotePerHr, \@dlvLocalPerHr, \@dfrPerHr, \@bncPerHr, \@rejPerHr, $dayCnt);
+print_per_hour_summary(\@rcvPerHr, \@dlvPerHr, \@dfrPerHr, \@bncPerHr,
+    \@rejPerHr, $dayCnt);
 
 print_recip_domain_summary(\%recipDom, $opts{'h'});
 print_sending_domain_summary(\%sendgDom, $opts{'h'});
@@ -1112,15 +1109,15 @@ End_Of_Per_Day_Heading
 # print "per-hour" traffic summary
 # (done in a subroutine only to keep main-line code clean)
 sub print_per_hour_summary {
-    my ($rcvPerHr, $dlvPerHr, $dlvRemotePerHr, $dlvLocalPerHr, $dfrPerHr, $bncPerHr, $rejPerHr, $dayCnt) = @_;
+    my ($rcvPerHr, $dlvPerHr, $dfrPerHr, $bncPerHr, $rejPerHr, $dayCnt) = @_;
     my $reportType = $dayCnt > 1? 'Daily Average' : 'Summary';
     my ($hour, $value);
 
     print_subsect_title("Per-Hour Traffic $reportType");
 
     print <<End_Of_Per_Hour_Heading;
-    time          received  delivered  remotedlvd  localdlvd  deferred    bounced     rejected
-    --------------------------------------------------------------------------------------------
+    time          received  delivered   deferred    bounced     rejected
+    --------------------------------------------------------------------
 End_Of_Per_Hour_Heading
 
     for($hour = 0; $hour < 24; ++$hour) {
@@ -1129,7 +1126,9 @@ End_Of_Per_Hour_Heading
 	} else {
 	    printf "    %02d00-%02d00  ", $hour, $hour + 1;
 	}
-	foreach $value (@$rcvPerHr[$hour], @$dlvPerHr[$hour], @$dlvRemotePerHr[$hour], @$dlvLocalPerHr[$hour], @$dfrPerHr[$hour], @$bncPerHr[$hour], @$rejPerHr[$hour])
+	foreach $value (@$rcvPerHr[$hour], @$dlvPerHr[$hour],
+			   @$dfrPerHr[$hour], @$bncPerHr[$hour],
+			   @$rejPerHr[$hour])
 	{
 	    my $units = ' ';
 	    $value = ($value / $dayCnt) + 0.5 if($dayCnt);
