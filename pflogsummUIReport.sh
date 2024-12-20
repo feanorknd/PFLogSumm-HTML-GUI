@@ -333,7 +333,7 @@ $MOVEF  ${TMPFOLDER}/LocalRecipients_tmp ${TMPFOLDER}/LocalRecipients &> /dev/nu
 
 
 #======================================================
-# Extract Information into variable -> Host Domain Summary Messages Received
+# Extract Information into variable -> Senders by message count
 #======================================================
 while IFS= read -r var
 do
@@ -387,7 +387,7 @@ done < ${TMPFOLDER}/Recipientsbymessagesize
 $MOVEF ${TMPFOLDER}/Recipientsbymessagesize_tmp ${TMPFOLDER}/Recipientsbymessagesize &> /dev/null
 
 #======================================================
-# Extract Information into variable -> Recipients by messagesize Table
+# Extract Information into variable -> Messages with no size data
 #======================================================
 while IFS= read -r var
 do
@@ -1927,10 +1927,4 @@ do
 	# Finally remove file
 	rm -f ${file}
 done
-
-
-
-
-
-
 
