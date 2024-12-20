@@ -1101,8 +1101,8 @@ sub print_per_day_summary {
     print_subsect_title("Per-Day Traffic Summary");
 
     print <<End_Of_Per_Day_Heading;
-    date          received  delivered  remotedlvd  localdlvd  deferred  bounced   rejected
-    ----------------------------------------------------------------------------------------
+    date          received  delivered  remotedlvd  localdlvd  deferred    bounced   rejected
+    ------------------------------------------------------------------------------------------
 End_Of_Per_Day_Heading
 
     foreach (sort { $a <=> $b } keys(%$msgsPerDay)) {
