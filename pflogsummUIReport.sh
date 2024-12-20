@@ -229,7 +229,7 @@ while IFS= read -r var
 do
     PerDayTrafficSummaryTable=""
     PerDayTrafficSummaryTable+="<tr>"
-    PerDayTrafficSummaryTable+=$(echo "$var" | awk '{print "<td>"$1" "$2" "$3"</td>""<td>"$4"</td>""<td>"$5"</td>""<td>"$6"</td>""<td>"$7"</td>""<td>"$8"</td>"}')
+    PerDayTrafficSummaryTable+=$(echo "$var" | awk '{print "<td>"$1" "$2" "$3"</td>""<td>"$4"</td>""<td>"$5"</td>""<td>"$6"</td>""<td>"$7"</td>""<td>"$8"</td>""<td>"$9"</td>""<td>"$10"</td>"}')
     PerDayTrafficSummaryTable+="</tr>"
     echo $PerDayTrafficSummaryTable >> ${TMPFOLDER}/PerDayTrafficSummary_tmp
 done < ${TMPFOLDER}/PerDayTrafficSummary
@@ -1070,6 +1070,8 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                                         <th scope="col">Date</th>
                                         <th scope="col">Received</th>
                                         <th scope="col">Delivered</th>
+                                        <th scope="col">RemoteDlvd</th>
+                                        <th scope="col">LocalDlvd</th>
                                         <th scope="col">Deferred</th>
                                         <th scope="col">Bounced</th>
                                         <th scope="col">Rejected</th>
