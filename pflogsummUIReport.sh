@@ -136,7 +136,7 @@ RAWFILELINK="reports/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt"
 RAWFILENAME="$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt"
 
 #Temp folder
-TMPFOLDER="$HTMLOUTPUTDIR/.temp"
+TMPFOLDER="$HTMLOUTPUTDIR/.temp.$(date "+%Y%m%d%H%M%S")"
 
 #Create the temp Directory if it does not exist
 mkdir -p ${TMPFOLDER};
