@@ -80,6 +80,9 @@ MY_PATH="$(cd -- "$MY_PATH" && pwd)"
 HTMLOUTPUTDIR="${MAINDIR}/www"
 HTMLOUTPUT_INDEXDASHBOARD="index.html"
 
+#REMOTEDLVD FOR CURRENT HOUR RANGE (if TODAY) PUBLISHED FILE
+REMOTEDLVD_OUTPUT="${HTMLOUTPUTDIR}/remotedlvd.txt"
+
 #Create the Cache Directory if it does not exist
 DATADIR="${HTMLOUTPUTDIR}/data"
 if [ ! -d ${DATADIR} ]; then
@@ -94,9 +97,15 @@ MOVEF="/usr/bin/mv -f "
 FILE_DATE="$(stat -c "%y" ${LOGFILE})"
 FILE_MONTH=$(date --date "${FILE_DATE}" +'%b')
 
-
+#TODAY REPORT
+TODAY=false
 #WEEKLY REPORT
 WEEKLY=false
+
+if [ "${MY_DATE}" == "today" ]
+then
+        TODAY=true
+fi
 
 if [ "${MY_DATE}" == "weekly" ]
 then
@@ -193,6 +202,17 @@ sed -n '/^message bounce detail (by relay)/,/^message reject detail/p;/^message 
 sed -n '/^Warnings/,/^Fatal Errors/p;/^Fatal Errors/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/warnings
 
 sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/FatalErrors
+
+
+#============================================================
+# Extract emails delivered to remotes in current hour range
+# (Only for TODAY dating)
+# Create report for external monitors
+#============================================================
+if ${TODAY}
+then
+	cat ${TMPFOLDER}/PerHourTrafficSummary | grep "$(date "+%H")00-$(date -d "+1 hour" "+%H")00" | awk '{print $4}' > ${REMOTEDLVD_OUTPUT}
+fi
 
 
 #======================================================
