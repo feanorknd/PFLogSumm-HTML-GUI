@@ -396,7 +396,6 @@ do
     MessageswithnosizedataTable+=$(echo "$var" | awk '{print "<td>"$1"</td>""<td>"$2"</td>"}')
     MessageswithnosizedataTable+="</tr>"
     echo $MessageswithnosizedataTable >> ${TMPFOLDER}/Messageswithnosizedata_tmp
-    echo $MessageswithnosizedataTable
 done < ${TMPFOLDER}/Messageswithnosizedata
 $MOVEF  ${TMPFOLDER}/Messageswithnosizedata_tmp ${TMPFOLDER}/Messageswithnosizedata  &> /dev/null
 
