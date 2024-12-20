@@ -872,7 +872,7 @@ while(<>) {
 		#    print STDERR "Now msgsDlvrdLocal = $msgsDlvrd\n";
 		#    print STDERR "Now msgsDlvrdLocal = $msgsDlvrdLocal\n";
 		} else {
-                    ++$dlvRemovePerHr[$msgHr];
+                    ++$dlvRemotePerHr[$msgHr];
 		    ++$msgsDlvrdRemote;
                     ++$recipUserRemoteCnt unless(${$recipUserRemote{$addr}}[$msgCntI]);
                     ++${$recipUserRemote{$addr}}[$msgCntI];
