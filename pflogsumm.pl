@@ -6,9 +6,24 @@ eval 'exec perl -S $0 "$@"'
 
 pflogsumm - Produce Postfix MTA logfile summary
 
-(Customized by Gino 2024 to allow specifying date to analyze)
-
 Copyright (C) 1998-2010 by James S. Seymour, Release 1.1.5
+
+=head1 CUSTOMIZED
+
+Customized by Gino 2024 to allow specifying date to analyze and
+show deliveries to local and remote MTAs (depending on relay).
+
+Translated array positions for msgsPerDay:
+
+array position ->  original  ->  modified
+----------------------------------------------
+msgsPerDay [0] ->  received  ->  received
+msgsPerDay [1] ->  delivered ->  delivered
+msgsPerDay [2] ->  deferred  ->  remotedlvd
+msgsPerDay [3] ->  bounced   ->  localdlvd
+msgsPerDay [4] ->  rejected  ->  deferred
+msgsPerDay [5] ->  NaN       ->  bounced
+msgsPerDay [6] ->  NaN       ->  rejected
 
 =head1 SYNOPSIS
 
@@ -670,7 +685,7 @@ while(<>) {
 	$revMsgDateStr = sprintf "%d%02d%02d", $msgYr, $msgMon, $msgDay;
 	++$dayCnt;
 	if(defined($opts{'zeroFill'})) {
-	    ${$msgsPerDay{$revMsgDateStr}}[4] = 0;
+	    ${$msgsPerDay{$revMsgDateStr}}[6] = 0;
 	}
     }
 
@@ -694,7 +709,7 @@ while(<>) {
 	    ++$msgsDscrdd;
 	}
 	++$rejPerHr[$msgHr];
-	++${$msgsPerDay{$revMsgDateStr}}[4];
+	++${$msgsPerDay{$revMsgDateStr}}[6];
     } elsif($qid eq 'warning') {
 	(my $warnReas = $logRmdr) =~ s/^.*warning: //;
 	$warnReas = string_trimmer($warnReas, 66, $opts{'verbMsgDetail'});
@@ -711,16 +726,16 @@ while(<>) {
 	++$panics{$cmd}{$panicReas};
     } elsif($qid eq 'reject') {
 	proc_smtpd_reject($logRmdr, \%rejects, \$msgsRjctd, \$rejPerHr[$msgHr],
-			  \${$msgsPerDay{$revMsgDateStr}}[4]);
+			  \${$msgsPerDay{$revMsgDateStr}}[6]);
     } elsif($qid eq 'reject_warning') {
 	proc_smtpd_reject($logRmdr, \%warns, \$msgsWrnd, \$rejPerHr[$msgHr],
-			  \${$msgsPerDay{$revMsgDateStr}}[4]);
+			  \${$msgsPerDay{$revMsgDateStr}}[6]);
     } elsif($qid eq 'hold') {
 	proc_smtpd_reject($logRmdr, \%holds, \$msgsHld, \$rejPerHr[$msgHr],
-			  \${$msgsPerDay{$revMsgDateStr}}[4]);
+			  \${$msgsPerDay{$revMsgDateStr}}[6]);
     } elsif($qid eq 'discard') {
 	proc_smtpd_reject($logRmdr, \%discards, \$msgsDscrdd, \$rejPerHr[$msgHr],
-			  \${$msgsPerDay{$revMsgDateStr}}[4]);
+			  \${$msgsPerDay{$revMsgDateStr}}[6]);
     } elsif($cmd eq 'master') {
 	++$masterMsgs{(split(/^.*master.*: /, $logRmdr))[1]};
     } elsif($cmd eq 'smtpd' || $cmd eq 'postscreen') {
@@ -738,19 +753,19 @@ while(<>) {
 	    if($rejSubTyp eq 'reject') {
 		proc_smtpd_reject($logRmdr, \%rejects, \$msgsRjctd,
 				  \$rejPerHr[$msgHr],
-				  \${$msgsPerDay{$revMsgDateStr}}[4]);
+				  \${$msgsPerDay{$revMsgDateStr}}[6]);
 	    } elsif($rejSubTyp eq 'reject_warning') {
 		proc_smtpd_reject($logRmdr, \%warns, \$msgsWrnd,
 				  \$rejPerHr[$msgHr],
-				  \${$msgsPerDay{$revMsgDateStr}}[4]);
+				  \${$msgsPerDay{$revMsgDateStr}}[6]);
 	    } elsif($rejSubTyp eq 'hold') {
 		proc_smtpd_reject($logRmdr, \%holds, \$msgsHld,
 				  \$rejPerHr[$msgHr],
-				  \${$msgsPerDay{$revMsgDateStr}}[4]);
+				  \${$msgsPerDay{$revMsgDateStr}}[6]);
 	    } elsif($rejSubTyp eq 'discard') {
 		proc_smtpd_reject($logRmdr, \%discards, \$msgsDscrdd,
 				  \$rejPerHr[$msgHr],
-				  \${$msgsPerDay{$revMsgDateStr}}[4]);
+				  \${$msgsPerDay{$revMsgDateStr}}[6]);
 	    }
 	}
 	else {
@@ -861,25 +876,22 @@ while(<>) {
 		++${$msgsPerDay{$revMsgDateStr}}[1];
 		++$msgsDlvrd;
 
-                #print STDERR "Delivered: $relay\n";
 		if($relay =~ /dovecot/i) {
+                    ++${$msgsPerDay{$revMsgDateStr}}[3];
                     ++$dlvLocalPerHr[$msgHr];
 		    ++$msgsDlvrdLocal;
                     ++$recipUserLocalCnt unless(${$recipUserLocal{$addr}}[$msgCntI]);
                     ++${$recipUserLocal{$addr}}[$msgCntI];
                     ++$recipDomLocalCnt unless(${$recipDomLocal{$domAddr}}[$msgCntI]);
                     ++${$recipDomLocal{$domAddr}}[$msgCntI];
-		#    print STDERR "Now msgsDlvrdLocal = $msgsDlvrd\n";
-		#    print STDERR "Now msgsDlvrdLocal = $msgsDlvrdLocal\n";
 		} else {
+                    ++${$msgsPerDay{$revMsgDateStr}}[2];
                     ++$dlvRemotePerHr[$msgHr];
 		    ++$msgsDlvrdRemote;
                     ++$recipUserRemoteCnt unless(${$recipUserRemote{$addr}}[$msgCntI]);
                     ++${$recipUserRemote{$addr}}[$msgCntI];
                     ++$recipDomRemoteCnt unless(${$recipDomRemote{$domAddr}}[$msgCntI]);
                     ++${$recipDomRemote{$domAddr}}[$msgCntI];
-		#    print STDERR "Now msgsDlvrdLocal = $msgsDlvrd\n";
-		#    print STDERR "Now msgsDlvrdRemote = $msgsDlvrdRemote\n";
 		}
 		
 		# DEBUG DEBUG DEBUG
@@ -908,7 +920,7 @@ while(<>) {
 		    ++$deferred{$cmd}{$deferredReas};
 		}
                 ++$dfrPerHr[$msgHr];
-		++${$msgsPerDay{$revMsgDateStr}}[2];
+		++${$msgsPerDay{$revMsgDateStr}}[6];
 		++$msgsDfrdCnt;
 		++$msgsDfrd unless($msgDfrdFlgs{$qid}++);
 		++${$recipDom{$domAddr}}[$msgDfrsI];
@@ -927,7 +939,7 @@ while(<>) {
 		    ++$bounced{$relay}{$bounceReas};
 		}
                 ++$bncPerHr[$msgHr];
-		++${$msgsPerDay{$revMsgDateStr}}[3];
+		++${$msgsPerDay{$revMsgDateStr}}[5];
 		++$msgsBncd;
 	    } else {
 #		print UNPROCD "$_\n";
@@ -1089,8 +1101,8 @@ sub print_per_day_summary {
     print_subsect_title("Per-Day Traffic Summary");
 
     print <<End_Of_Per_Day_Heading;
-    date          received  delivered   deferred    bounced     rejected
-    --------------------------------------------------------------------
+    date          received  delivered  remotedlvd  localdlvd  deferred  bounced   rejected
+    ----------------------------------------------------------------------------------------
 End_Of_Per_Day_Heading
 
     foreach (sort { $a <=> $b } keys(%$msgsPerDay)) {
