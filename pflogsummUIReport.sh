@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
 # Debug option - should be disabled unless required
-#set -x
+# set -x
 
-# VARIABLES
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# FUNCTION
+
 function showhelp {
         echo "
 How to use it:
@@ -48,91 +50,41 @@ while [[ "$#" > 0 ]]; do
   shift
 done
 
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# MANDATORY LOGFILE PARAMETER AND SET TYPE OF FILE (for cat or zcat)
 
-#MANDATORY LOGFILE PARAMETER
 if [[ -f "${LOGFILE}" ]]; then
-    filetype=$(file --mime-type -b "${LOGFILE}")
-    if [[ "${filetype}" == "application/gzip" ]]; then
-	MY_CAT="$(which zcat)"
-    elif [[ "${filetype}" == "text/plain" ]]; then
-	MY_CAT="$(which cat)"
-    else
-        echo "The file '${LOGFILE}' is of an unknown type: ${filetype}"
-        exit 1
-    fi
+	filetype=$(file --mime-type -b "${LOGFILE}")
+	if [[ "${filetype}" == "application/gzip" ]]; then
+		MY_CAT="$(which zcat)"
+	elif [[ "${filetype}" == "text/plain" ]]; then
+		MY_CAT="$(which cat)"
+	else
+		echo "The file '${LOGFILE}' is of an unknown type: ${filetype}"
+	exit 1
+	fi
 else
         echo "Call script including postfix log file to be analyzed. Could be plain text or even gz file."
         echo "(Execute with --help)"
         exit 1
 fi
 
-#CONSIDER DEFAULTING DATE
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# MAIN VARIABLES
+
+# CONSIDER DEFAULTING DATE
 [ -z ${MY_DATE} ] && MY_DATE="yesterday"
 
-#CONFIG FILE LOCATION
+# CONFIG FILE LOCATION
 MAINDIR="/home/postfix"
 
-#CURRENT PATH OF THIS SCRIPT
+# CURRENT PATH OF THIS SCRIPT
 MY_PATH="$(dirname -- "${BASH_SOURCE[0]}")"
 MY_PATH="$(cd -- "$MY_PATH" && pwd)"
 
-#HTML Output
+# HTML Output
 HTMLOUTPUTDIR="${MAINDIR}/www"
 HTMLOUTPUT_INDEXDASHBOARD="index.html"
-
-#REMOTEDLVD FOR CURRENT HOUR RANGE (if TODAY) PUBLISHED FILE
-REMOTEDLVD_OUTPUT="${HTMLOUTPUTDIR}/remotedlvd.txt"
-
-#Create the Cache Directory if it does not exist
-DATADIR="${HTMLOUTPUTDIR}/data"
-if [ ! -d ${DATADIR} ]; then
-  mkdir -p ${DATADIR};
-fi
-
-#TOOLS
-ACTIVEHOSTNAME=$(cat /proc/sys/kernel/hostname)
-MOVEF="/usr/bin/mv -f "
-
-#FETCH LOGFILE DATE
-FILE_DATE="$(stat -c "%y" ${LOGFILE})"
-FILE_MONTH=$(date --date "${FILE_DATE}" +'%b')
-
-#TODAY REPORT
-TODAY=false
-#WEEKLY REPORT
-WEEKLY=false
-
-if [ "${MY_DATE}" == "today" ]
-then
-        TODAY=true
-fi
-
-if [ "${MY_DATE}" == "weekly" ]
-then
-	WEEKLY=true
-	#Pick-up last modification date of file, and extract one day (supossing it is a rotated file always)
-	MY_DATE="$(date --date "${FILE_DATE} -1 days" "+%Y-%m-%d")"
-fi
-
-#Temporal Values
-REPORTDATE=$(date '+%Y-%m-%d %H:%M:%S')
-CURRENTYEAR=$(date  --date "${MY_DATE}" +'%Y')
-CURRENTMONTH=$(date --date "${MY_DATE}" +'%b')
-CURRENTDAY=$(date   --date "${MY_DATE}" +"%d")
-
-if ${WEEKLY}
-then
-	CURRENTYEAR="Weekly-${CURRENTYEAR}"
-fi
-
-
-#Just verificate that there are some log lines for specified
-if [ $(${MY_CAT} ${LOGFILE} | grep -i postfix | grep -P "^${CURRENTMONTH}\s+$(date --date "${MY_DATE}" +"%-d")" | wc -l) -eq 0 ]
-then
-	echo "Specified '${LOGFILE}' seems to not include loglines for specified '${MY_DATE}' date."
-	echo "Aborting..."
-	exit 1
-fi
 
 #RAW LOGS Output
 RAWDIR="${HTMLOUTPUTDIR}/data/reports"
@@ -140,58 +92,131 @@ RAWDIR="${HTMLOUTPUTDIR}/data/reports"
 #Create the RAW LOGS folder always
 mkdir -p ${RAWDIR};
 
-#Link for raw log in html
+# REMOTEDLVD FOR CURRENT HOUR RANGE (if TODAY) PUBLISHED FILE
+REMOTEDLVD_OUTPUT="${HTMLOUTPUTDIR}/remotedlvd.txt"
+
+# Create the Cache Directory if it does not exist
+DATADIR="${HTMLOUTPUTDIR}/data"
+if [ ! -d ${DATADIR} ]; then
+  mkdir -p ${DATADIR};
+fi
+
+# TOOLS
+ACTIVEHOSTNAME=$(cat /proc/sys/kernel/hostname)
+MOVEF="/usr/bin/mv -f "
+
+# SET REPORT DATE
+REPORTDATE=$(date '+%Y-%m-%d %H:%M:%S')
+
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# MANAGE DATES TO FILTER (based on input file and date parameter)
+
+# FETCH LOGFILE DATE
+FILE_DATE="$(stat -c "%y" ${LOGFILE})"
+FILE_MONTH=$(date --date "${FILE_DATE}" +'%b')
+
+# TODAY REPORT
+TODAY=false
+
+if [ "${MY_DATE}" == "today" ]
+then
+        TODAY=true
+fi
+
+# WEEKLY REPORT
+WEEKLY=false
+
+if [ "${MY_DATE}" == "weekly" ]
+then
+	WEEKLY=true
+	# Pick-up last modification date of file, and extract one day (supossing it is a rotated file always)
+	MY_DATE="$(date --date "${FILE_DATE} -1 days" "+%Y-%m-%d")"
+fi
+
+# IMPORTANT VARIABLES FOR ANALYSIS
+CURRENTYEAR=$(date  --date "${MY_DATE}" +'%Y')
+CURRENTMONTH=$(date --date "${MY_DATE}" +'%b')
+CURRENTDAY=$(date   --date "${MY_DATE}" +"%d")
+
+# Fix to include Weekly into the filename for the report
+if ${WEEKLY}
+then
+	CURRENTYEAR="Weekly-${CURRENTYEAR}"
+fi
+
+
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# VALIDATE CURRENT DATE TO ANALYZE VS FILE
+
+# Just verificate that there are some log lines for specified
+if [ $(${MY_CAT} ${LOGFILE} | grep -i postfix | grep -P "^${CURRENTMONTH}\s+$(date --date "${MY_DATE}" +"%-d")" | wc -l) -eq 0 ]
+then
+	echo "Specified '${LOGFILE}' seems to not include loglines for specified '${MY_DATE}' date."
+	echo "Aborting..."
+	exit 1
+fi
+
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# DEFINE VARIABLES BASED ON DATE
+
+# Link for raw log in html
 RAWFILELINK="reports/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt"
 RAWFILENAME="$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt"
 
-#Temp folder
+# Temp folder
 TMPFOLDER="$HTMLOUTPUTDIR/.temp.$(date "+%Y%m%d%H%M%S")"
 
-#Create the temp Directory if it does not exist
+# Create the temp Directory if it does not exist
 mkdir -p ${TMPFOLDER};
 
 
-#pflogsumm details
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# PERFORM PFLOGSUMM EXTRACTION
+
+# pflogsumm details
 PFLOGSUMMOPTIONS=" --verbose_msg_detail --zero_fill -e "
 PFLOGSUMMBIN="${MY_PATH}/pflogsumm.pl "
 
-#output main files
+# output main files
 FULL_REPORT="${TMPFOLDER}/mailfullreport"
 DAILY_REPORT="${TMPFOLDER}/maildailyreport"
 
-#Trigger pflogsumm for ${DATE} logs if not requesting a weekly report
+# Trigger pflogsumm for ${DATE} logs if not requesting a weekly report
 if ! ${WEEKLY}
 then
-	#Used for everything but Per-Day Traffic Summary
+	# Used for everything but Per-Day Traffic Summary
 	${MY_CAT} ${LOGFILE} | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS -d ${MY_DATE} > ${DAILY_REPORT}
-	#Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary
-	#but grep out exceeded dated lines from log (considering there are going to be few lines from the date the rotated log was created)
+	# Trigger pflogsum for all the days the log contains, to retrieve information for the Per-Day Traffic Summary
+	# but grep out exceeded dated lines from log (considering there are going to be few lines from the date the rotated log was created)
+        # Maybe few lines missed, but we consider log to be rotated near 00:00am
 	${MY_CAT} ${LOGFILE} | grep -v -P "^${FILE_MONTH}\s+$(date --date "${FILE_DATE}" +"%-d")" | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
 fi
 
-#If weekly report is requested, just make one report and make output variables equal
+# If weekly report is requested, just make one report and make output variables equal
 if ${WEEKLY}
 then
-	#Full report but grep out exceeded dated lines from log (considering there are going to be few lines from the date the rotated log was created)
-	${MY_CAT} ${LOGFILE} | grep -v -P "^${CURRENTMONTH}\s+$(date --date "${MY_DATE} + 1 days" +"%-d")" | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
+	# Full report but grep out exceeded dated lines from log (considering there are going to be few lines from the date the rotated log was created)
+	# Maybe few lines missed, but we consider log to be rotated near 00:00am
+	${MY_CAT} ${LOGFILE} | grep -v -P "^${FILE_MONTH}\s+$(date --date "${FILE_DATE}" +"%-d")" | $PFLOGSUMMBIN $PFLOGSUMMOPTIONS > ${FULL_REPORT}
 	DAILY_REPORT=${FULL_REPORT}
 fi
 
 
-#Extract from last days PFLOGSUMM
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# EXTRACT TEMPORAL CONTENTS FROM PFLOGSUMM OUTPUTS
+
+# Extract from last days PFLOGSUMM
 sed -n '/^Per-Day Traffic Summary/,/^Per-Hour/p;/^Per-Hour/q' ${FULL_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerDayTrafficSummary
 
-#Extract from today PFLOGSUMM
+# Extract from today PFLOGSUMM
 sed -n -r '/^Grand Totals/,/^(Per-Hour|Per-Day)/p;/^(Per-Hour|Per-Day)/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,3ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/GrandTotals
 sed -n -r '/^(Per-Hour Traffic Summary|Per-Hour Traffic Daily Average)/,/^Host\//p;/^Host\//q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/PerHourTrafficSummary
 sed -n '/^Host\/Domain Summary\: Message Delivery/,/^Host\/Domain Summary\: Messages Received/p;/^Host\/Domain Summary\: Messages Received/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 sed -n '/^Host\/Domain Summary\: Messages Received/,/^Remote Domains by message count/p;/^Remote Domains by message count/q' ${DAILY_REPORT} | sed -e '1,4d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D'  > ${TMPFOLDER}/HostDomainSummaryMessagesReceived
-
 sed -n '/^Remote Domains by message count/,/^Remote Recipients by message count/p;/^Remote Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d'  > ${TMPFOLDER}/RemoteDomains
 sed -n '/^Remote Recipients by message count/,/^Local Domains by message count/p;/^Local Domains by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d'  > ${TMPFOLDER}/RemoteRecipients
 sed -n '/^Local Domains by message count/,/^Local Recipients by message count/p;/^Local Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d'  > ${TMPFOLDER}/LocalDomains
 sed -n '/^Local Recipients by message count/,/^Senders by message count/p;/^Senders by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d'  > ${TMPFOLDER}/LocalRecipients
-
 sed -n '/^Senders by message count/,/^Recipients by message count/p;/^Recipients by message count/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagecount
 sed -n '/^Recipients by message count/,/^Senders by message size/p;/^Senders by message size/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Recipientsbymessagecount
 sed -n '/^Senders by message size/,/^Recipients by message size/p;/^Recipients by message size/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/Sendersbymessagesize
@@ -200,25 +225,25 @@ sed -n '/^Messages with no size data/,/^message deferral detail/p;/^message defe
 sed -n '/^message deferral detail/,/^message bounce detail (by relay)/p;/^message bounce detail (by relay)/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagedeferraldetail
 sed -n '/^message bounce detail (by relay)/,/^message reject detail/p;/^message reject detail/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/messagebouncedetaibyrelay
 sed -n '/^Warnings/,/^Fatal Errors/p;/^Fatal Errors/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/warnings
-
 sed -n '/^Fatal Errors/,/^Master daemon messages/p;/^Master daemon messages/q' ${DAILY_REPORT} | sed -e '1,2d' | sed -e :a -e '$d;N;2,2ba' -e 'P;D' | sed '/^$/d' > ${TMPFOLDER}/FatalErrors
 
 
-#============================================================
-# Extract emails delivered to remotes in current hour range
-# (Only for TODAY dating)
-# Create report for external monitors
-#============================================================
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# EXTRACT CURRENT HOUR DELIVERED EMAILS TO REMOTE MTAs (ONLY FOR SCHEDULED HOURLY "today" ANALYSIS) (FOR REMOTE MONITORS)
+
 if ${TODAY}
 then
-	RemoteDlvdPerHour="$(cat ${TMPFOLDER}/PerHourTrafficSummary | grep "$(date "+%H")00-$(date -d "+1 hour" "+%H")00" | awk '{print $4}')"
+	RemoteDlvdPerHour="$(cat ${TMPFOLDER}/PerHourTrafficSummary | grep -P "$(date "+%H")00-[0-9]{4}" | awk '{print $4}')"
 	echo "RemoteDlvdPerHour:${RemoteDlvdPerHour}" > ${REMOTEDLVD_OUTPUT}
 fi
 
 
-#======================================================
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# PERFORM ANALYSIS AND EXTRACTIONS OF DATA TO BUILD HTML
+
+#============================================================================================
 # Extract Information into variables -> Grand Totals
-#======================================================
+#============================================================================================
 ReceivedEmail=$(awk '$2=="received" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeliveredEmail=$(awk '$2=="delivered" {print $1}'  ${TMPFOLDER}/GrandTotals)
 DeliveredEmailRemote=$(sed 's/remote delivered/remotedelivered/' ${TMPFOLDER}/GrandTotals | awk '$2=="remotedelivered" {print $1}')
@@ -243,9 +268,9 @@ RecipientsEmail=$(awk '$2=="recipients" {print $1}'  ${TMPFOLDER}/GrandTotals)
 RecipientHostsDomainsEmail=$(sed 's/recipient hosts\/domains/recipienthostsdomains/' ${TMPFOLDER}/GrandTotals | awk '$2=="recipienthostsdomains" {print $1}')
 
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Per-Day Traffic Summary
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     PerDayTrafficSummaryTable=""
@@ -256,9 +281,9 @@ do
 done < ${TMPFOLDER}/PerDayTrafficSummary
 $MOVEF  ${TMPFOLDER}/PerDayTrafficSummary_tmp ${TMPFOLDER}/PerDayTrafficSummary &> /dev/null
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Per-Hour Traffic Summary
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     PerHourTrafficSummaryTable=""
@@ -270,9 +295,9 @@ done < ${TMPFOLDER}/PerHourTrafficSummary
 $MOVEF ${TMPFOLDER}/PerHourTrafficSummary_tmp ${TMPFOLDER}/PerHourTrafficSummary &> /dev/null
 
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Host Domain Summary Messages Delivery
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     HostDomainSummaryMessageDeliveryTable=""
@@ -284,9 +309,9 @@ done < ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 $MOVEF ${TMPFOLDER}/HostDomainSummaryMessageDelivery_tmp ${TMPFOLDER}/HostDomainSummaryMessageDelivery &> /dev/null
 
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Host Domain Summary Messages Received
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     HostDomainSummaryMessagesReceivedTable=""
@@ -297,9 +322,9 @@ do
 done < ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 $MOVEF ${TMPFOLDER}/HostDomainSummaryMessagesReceived_tmp ${TMPFOLDER}/HostDomainSummaryMessagesReceived &> /dev/null
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Remote Domains
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     RemoteDomainscountTable=""
@@ -311,9 +336,9 @@ done < ${TMPFOLDER}/RemoteDomains
 $MOVEF  ${TMPFOLDER}/RemoteDomains_tmp ${TMPFOLDER}/RemoteDomains &> /dev/null
 
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Remote Recipients
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     RemoteRecipientscountTable=""
@@ -325,9 +350,9 @@ done < ${TMPFOLDER}/RemoteRecipients
 $MOVEF  ${TMPFOLDER}/RemoteRecipients_tmp ${TMPFOLDER}/RemoteRecipients &> /dev/null
 
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Local Domains
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     LocalDomainscountTable=""
@@ -339,9 +364,9 @@ done < ${TMPFOLDER}/LocalDomains
 $MOVEF  ${TMPFOLDER}/LocalDomains_tmp ${TMPFOLDER}/LocalDomains &> /dev/null
 
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Local Recipients
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     LocalRecipientscountTable=""
@@ -353,9 +378,9 @@ done < ${TMPFOLDER}/LocalRecipients
 $MOVEF  ${TMPFOLDER}/LocalRecipients_tmp ${TMPFOLDER}/LocalRecipients &> /dev/null
 
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Senders by message count
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     SendersbymessagecountTable=""
@@ -366,9 +391,9 @@ do
 done < ${TMPFOLDER}/Sendersbymessagecount
 $MOVEF  ${TMPFOLDER}/Sendersbymessagecount_tmp ${TMPFOLDER}/Sendersbymessagecount &> /dev/null
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Recipients by message count
-#======================================================
+#============================================================================================
  while IFS= read -r var
 do
     RecipientsbymessagecountTable=""
@@ -380,9 +405,9 @@ done < ${TMPFOLDER}/Recipientsbymessagecount
 $MOVEF ${TMPFOLDER}/Recipientsbymessagecount_tmp ${TMPFOLDER}/Recipientsbymessagecount &> /dev/null
 
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Senders by message size
-#======================================================
+#============================================================================================
  while IFS= read -r var
 do
     SendersbymessagesizeTable=""
@@ -394,9 +419,9 @@ done < ${TMPFOLDER}/Sendersbymessagesize
 $MOVEF ${TMPFOLDER}/Sendersbymessagesize_tmp ${TMPFOLDER}/Sendersbymessagesize &> /dev/null
 
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Recipients by messagesize Table
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     RecipientsbymessagesizeTable=""
@@ -407,9 +432,9 @@ do
 done < ${TMPFOLDER}/Recipientsbymessagesize
 $MOVEF ${TMPFOLDER}/Recipientsbymessagesize_tmp ${TMPFOLDER}/Recipientsbymessagesize &> /dev/null
 
-#======================================================
+#============================================================================================
 # Extract Information into variable -> Messages with no size data
-#======================================================
+#============================================================================================
 while IFS= read -r var
 do
     MessageswithnosizedataTable=""
@@ -420,11 +445,15 @@ do
 done < ${TMPFOLDER}/Messageswithnosizedata
 $MOVEF  ${TMPFOLDER}/Messageswithnosizedata_tmp ${TMPFOLDER}/Messageswithnosizedata  &> /dev/null
 
-#======================================================
+
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# GENERATE HTML OUTPUTS (MAIN INDEX)
+
+#============================================================================================
 # Single PAGE INDEX HTML TEMPLATE
 # Using embedded HTML makes the script highly portable
 # SED search and replace tags to fill the content
-#======================================================
+#============================================================================================
 
 cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
 <!doctype html>
@@ -442,7 +471,6 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
     <link rel="stylesheet" href="/statics/bootstrap.min.css">
     <link rel="stylesheet" href="/statics/font-awesome.css">
 
-
     <style>
         body {
             padding-top: 5rem;
@@ -457,21 +485,14 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
             height: 10px;
         }
     </style>
-
 </head>
 
 <body>
-
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <a class="navbar-brand" href="#">Postfix PFLOGSUMM Dashboard</a>
     </nav>
 
-
-
-
     <div class="container">
-
-
         <h3 class="pb-3 mb-4 font-italic border-bottom">
             Select Report
             <dl class="row">
@@ -482,12 +503,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
 
             </dl>
         </h3>
-
-
         <div class="row">
-
             <div class="col-sm">
-
                 <!-- January Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -506,11 +523,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- January End -->
-
             </div>
-
             <div class="col-sm">
-
                 <!-- February Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -529,11 +543,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- February End -->
-
             </div>
-
             <div class="col-sm">
-
                 <!-- March Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -552,11 +563,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- March End -->
-
             </div>
-
             <div class="col-sm">
-
                 <!-- April Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -575,18 +583,11 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- April End -->
-
             </div>
-
-
         </div>
-
         <br>
-
         <div class="row">
-
             <div class="col-sm">
-
                 <!-- May Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -605,11 +606,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- May End -->
-
             </div>
-
             <div class="col-sm">
-
                 <!-- June Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -628,11 +626,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- June End -->
-
             </div>
-
             <div class="col-sm">
-
                 <!-- July Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -651,11 +646,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- July End -->
-
             </div>
-
             <div class="col-sm">
-
                 <!-- August Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -674,17 +666,11 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- August End -->
-
             </div>
-
         </div>
-
         <br>
-
         <div class="row">
-
             <div class="col-sm">
-
                 <!-- September Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -703,11 +689,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- September End -->
-
             </div>
-
             <div class="col-sm">
-
                 <!-- October Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -726,11 +709,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- October End -->
-
             </div>
-
             <div class="col-sm">
-
                 <!-- November Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -749,11 +729,8 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- November End -->
-
             </div>
-
             <div class="col-sm">
-
                 <!-- December Start-->
                 <div class="card flex-md-row mb-4 shadow-sm h-md-250">
                     <div class="card-body d-flex flex-column align-items-start">
@@ -772,17 +749,10 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
                     </div>
                 </div>
                 <!-- December End -->
-
             </div>
-
         </div>
-
     </div>
-
-
-
     <br>
-
     <!-- Footer -->
     <footer class="container-fluid bg-dark text-center text-white-50">
         <div class="copyrights" style="margin-top:5px;">
@@ -794,7 +764,6 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
     </footer>
     <!-- Footer -->
 
-
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -803,40 +772,37 @@ cat > $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD << 'HTMLOUTPUTINDEXDASHBOARD'
     <!-- Popper.JS -->
     <script src="/statics/popper.min.js"></script>
 
-</body>
-
-
-<script>
-    $(document).ready(function () {
-        $('.JanuaryList').load("data/jan_rpt.html?rnd=" + Math.random());
-        $('.FebruaryList').load("data/feb_rpt.html?rnd=" + Math.random());
-        $('.MarchList').load("data/mar_rpt.html?rnd=" + Math.random());
-        $('.AprilList').load("data/apr_rpt.html?rnd=" + Math.random());
-        $('.MayList').load("data/may_rpt.html?rnd=" + Math.random());
-        $('.JuneList').load("data/jun_rpt.html?rnd=" + Math.random());
-        $('.JulyList').load("data/jul_rpt.html?rnd=" + Math.random());
-        $('.AugustList').load("data/aug_rpt.html?rnd=" + Math.random());
-        $('.SeptemberList').load("data/sep_rpt.html?rnd=" + Math.random());
-        $('.OctoberList').load("data/oct_rpt.html?rnd=" + Math.random());
-        $('.NovemberList').load("data/nov_rpt.html?rnd=" + Math.random());
-        $('.DecemberList').load("data/dec_rpt.html?rnd=" + Math.random());
-    });
-</script>
-
-
+    <script>
+        $(document).ready(function () {
+            $('.JanuaryList').load("data/jan_rpt.html?rnd=" + Math.random());
+            $('.FebruaryList').load("data/feb_rpt.html?rnd=" + Math.random());
+            $('.MarchList').load("data/mar_rpt.html?rnd=" + Math.random());
+            $('.AprilList').load("data/apr_rpt.html?rnd=" + Math.random());
+            $('.MayList').load("data/may_rpt.html?rnd=" + Math.random());
+            $('.JuneList').load("data/jun_rpt.html?rnd=" + Math.random());
+            $('.JulyList').load("data/jul_rpt.html?rnd=" + Math.random());
+            $('.AugustList').load("data/aug_rpt.html?rnd=" + Math.random());
+            $('.SeptemberList').load("data/sep_rpt.html?rnd=" + Math.random());
+            $('.OctoberList').load("data/oct_rpt.html?rnd=" + Math.random());
+            $('.NovemberList').load("data/nov_rpt.html?rnd=" + Math.random());
+            $('.DecemberList').load("data/dec_rpt.html?rnd=" + Math.random());
+        });
+    </script>
 
 </body>
-
 </html>
 HTMLOUTPUTINDEXDASHBOARD
 
 
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# GENERATE HTML OUTPUTS (PAGE REPORT)
 
-#======================================================
+
+#============================================================================================
 # Single PAGE REPORT HTML TEMPLATE
 # Using embedded HTML makes the script highly portable
 # SED search and replace tags to fill the content
-#======================================================
+#============================================================================================
 
 cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOARD'
 <!doctype html>
@@ -852,35 +818,27 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="/statics/bootstrap.min.css">
-    <link rel="stylesheet" href="/statics/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns"
-        crossorigin="anonymous">
+    <link rel="stylesheet" href="/statics/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">
     <link rel="stylesheet" href="/statics/prism.css">
-
-
 
     <style>
         body {
             padding-top: 5rem;
         }
-
         footer {
             background-color: #eee;
             padding: 25px;
         }
-
         .spacer15 {
             height: 15px;
         }
     </style>
-
 </head>
 
 <body>
-
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <a class="navbar-brand" href="../">Postfix Report</a>
     </nav>
-
 
     <!-- Server/Report INFO -->
 
@@ -1052,13 +1010,9 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
         <!-- Quick Status Blocks -->
     </div>
 
-
-
     <div class="container rounded shadow-sm  p-3 my-3 ">
-
         <div class="my-3 p-3 bg-white  rounded shadow-sm">
             <h6 class="border-bottom border-gray pb-2 mb-0">Graphs</h6>
-
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
@@ -1066,7 +1020,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                     </div>
                 </div>
             </div>
-
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
@@ -1075,8 +1028,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#PerDayTrafficSummary" role="button" aria-expanded="false" aria-controls="PerDayTrafficSummary">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Per-Day Traffic Summary</h6>
@@ -1107,7 +1058,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#PerHourTrafficSummary" role="button" aria-expanded="false"
                 aria-controls="PerHourTrafficSummary">
@@ -1139,8 +1089,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#HostDomainSummaryMessagesReceived" role="button" aria-expanded="false"
                 aria-controls="HostDomainSummaryMessagesReceived">
@@ -1167,7 +1115,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#RemoteDomains" role="button" aria-expanded="false" aria-controls="RemoteDomains">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Remote Domains by Message Count</h6>
@@ -1192,7 +1139,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#RemoteRecipients" role="button" aria-expanded="false" aria-controls="RemoteRecipients">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Remote Recipients by Message Count</h6>
@@ -1217,7 +1163,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#LocalDomains" role="button" aria-expanded="false" aria-controls="LocalDomains">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Local Domains by Message Count</h6>
@@ -1242,7 +1187,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#LocalRecipients" role="button" aria-expanded="false" aria-controls="LocalRecipients">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Local Recipients by Message Count</h6>
@@ -1267,7 +1211,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#SendersbyMessageSize" role="button" aria-expanded="false" aria-controls="SendersbyMessageSize">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Senders by Message Size</h6>
@@ -1292,7 +1235,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#SendersbyMessageCount" role="button" aria-expanded="false" aria-controls="SendersbyMessageCount">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Senders by Message Count</h6>
@@ -1317,7 +1259,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#RecipientsbyMessageCount" role="button" aria-expanded="false"
                 aria-controls="RecipientsbyMessageCount">
@@ -1343,8 +1284,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#HostDomainSummaryMessageDelivery" role="button" aria-expanded="false"
                 aria-controls="HostDomainSummaryMessageDelivery">
@@ -1374,8 +1313,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#Recipientsbymessagesize" role="button" aria-expanded="false" aria-controls="Recipientsbymessagesize">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Recipients by message size</h6>
@@ -1400,7 +1337,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#Messageswithnosizedata" role="button" aria-expanded="false" aria-controls="Messageswithnosizedata">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Messages with no size data</h6>
@@ -1425,8 +1361,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#MessageDeferralDetail" role="button" aria-expanded="false" aria-controls="MessageDeferralDetail">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Message Deferral Detail</h6>
@@ -1438,16 +1372,13 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                         <div class="pre-scrollable" style="max-height: 40vh; ">
                             <pre>
                                     ##MessageDeferralDetail##
-                        </pre>
+                            </pre>
                         </div>
                         <br>
                     </div>
                 </div>
             </div>
         </div>
-
-
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#MessageBounceDetailbyrelay" role="button" aria-expanded="false"
                 aria-controls="MessageBounceDetailbyrelay">
@@ -1467,7 +1398,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#MailWarnings" role="button" aria-expanded="false" aria-controls="MailWarnings">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Mail Warnings</h6>
@@ -1479,14 +1409,13 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                         <div class="pre-scrollable" style="max-height: 40vh; ">
                             <pre>
                                             ##MailWarnings##
-                                </pre>
+                            </pre>
                         </div>
                         <br>
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="my-3 p-3 bg-white rounded shadow-sm">
             <a data-toggle="collapse" href="#MailFatalErrors" role="button" aria-expanded="false" aria-controls="MailFatalErrors">
                 <h6 class="border-bottom border-gray pb-2 mb-0">Mail Fatal Errors</h6>
@@ -1498,7 +1427,7 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                         <div class="pre-scrollable" style="max-height: 40vh; ">
                             <pre>
                                         ##MailFatalErrors##
-                                    </pre>
+                            </pre>
                         </div>
                         <br>
                     </div>
@@ -1507,12 +1436,7 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
         </div>
     </div>
 
-
-
-
-
     <br>
-
 
     <!-- Footer -->
     <footer class="container-fluid bg-dark text-center text-white-50">
@@ -1527,9 +1451,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
         </div>
     </footer>
 
-
-
-
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -1539,7 +1460,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
     <script src="/statics/bootstrap.min.js"></script>
     <script src="/statics/jquery.waypoints.js"></script>
     <script src="/statics/jquery.counterup.js"></script>
-
 
     <!-- Icons -->
     <script src="/statics/feather.min.js"></script>
@@ -1556,11 +1476,7 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
     <!-- Code Highlight-->
     <script src="/statics/prism.min.js"></script>
 
-
-
-
     <script>
-
         Highcharts.chart('PerDayTrafficSummaryTableGraph', {
             data: {
                 table: 'PerDayTrafficSummaryTable'
@@ -1577,7 +1493,6 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                     text: 'Units'
                 }
             },
-
             plotOptions: {
                 line: {
                     dataLabels: {
@@ -1586,10 +1501,7 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                     enableMouseTracking: false
                 }
             }
-
         });
-
-
         Highcharts.chart('PerHourTrafficSummaryTableGraph', {
             data: {
                 table: 'PerHourTrafficSummaryTable'
@@ -1615,15 +1527,8 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
                     enableMouseTracking: false
                 }
             },
-
-
-
         });
-
     </script>
-
-
-
 
     <script>
         jQuery(document).ready(function ($) {
@@ -1640,9 +1545,12 @@ cat > $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html << 'HTMLREPORTDASHBOA
 HTMLREPORTDASHBOARD
 
 
-#======================================================
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# SUBSTITUTIONS OVER GENERATED HTML
+
+#============================================================================================
 # Replace Placeholders with values - GrandTotals
-#======================================================
+#============================================================================================
 sed -i "s/##REPORTDATE##/$REPORTDATE/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##ACTIVEHOSTNAME##/$ACTIVEHOSTNAME/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s|##RAWFILELINK##|$RAWFILELINK|g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
@@ -1670,153 +1578,145 @@ sed -i "s/##SendingHostsDomainsEmail##/$SendingHostsDomainsEmail/g" $DATADIR/$CU
 sed -i "s/##RecipientsEmail##/$RecipientsEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 sed -i "s/##RecipientHostsDomainsEmail##/$RecipientHostsDomainsEmail/g" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table PerDayTrafficSummaryTable
-#======================================================
+#============================================================================================
 sed -i "/##PerDayTrafficSummaryTable##/ {
 r ${TMPFOLDER}/PerDayTrafficSummary
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table PerHourTrafficSummaryTable
-#======================================================
+#============================================================================================
 sed -i "/##PerHourTrafficSummaryTable##/ {
 r ${TMPFOLDER}/PerHourTrafficSummary
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table HostDomainSummaryMessageDelivery
-#======================================================
+#============================================================================================
 sed -i "/##HostDomainSummaryMessageDelivery##/ {
 r ${TMPFOLDER}/HostDomainSummaryMessageDelivery
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table HostDomainSummaryMessagesReceived
-#======================================================
+#============================================================================================
 sed -i "/##HostDomainSummaryMessagesReceived##/ {
 r ${TMPFOLDER}/HostDomainSummaryMessagesReceived
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table RemoteDomains
-#======================================================
+#============================================================================================
 sed -i "/##RemoteDomains##/ {
 r ${TMPFOLDER}/RemoteDomains
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table RemoteRecipients
-#======================================================
+#============================================================================================
 sed -i "/##RemoteRecipients##/ {
 r ${TMPFOLDER}/RemoteRecipients
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table LocalDomains
-#======================================================
+#============================================================================================
 sed -i "/##LocalDomains##/ {
 r ${TMPFOLDER}/LocalDomains
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table LocalRecipients
-#======================================================
+#============================================================================================
 sed -i "/##LocalRecipients##/ {
 r ${TMPFOLDER}/LocalRecipients
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table Sendersbymessagecount
-#======================================================
+#============================================================================================
 sed -i "/##Sendersbymessagecount##/ {
 r ${TMPFOLDER}/Sendersbymessagecount
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table RecipientsbyMessageCount
-#======================================================
+#============================================================================================
 sed -i "/##RecipientsbyMessageCount##/ {
 r ${TMPFOLDER}/Recipientsbymessagecount
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table SendersbyMessageSize
-#======================================================
+#============================================================================================
 sed -i "/##SendersbyMessageSize##/ {
 r ${TMPFOLDER}/Sendersbymessagesize
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table Recipientsbymessagesize
-#======================================================
+#============================================================================================
 sed -i "/##Recipientsbymessagesize##/ {
 r ${TMPFOLDER}/Recipientsbymessagesize
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - Table Messageswithnosizedata
-#======================================================
+#============================================================================================
 sed -i "/##Messageswithnosizedata##/ {
 r ${TMPFOLDER}/Messageswithnosizedata
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-
-#======================================================
+#============================================================================================
 # Replace Placeholders with values -  MessageDeferralDetail
-#======================================================
+#============================================================================================
 sed -i "/##MessageDeferralDetail##/ {
 r ${TMPFOLDER}/messagedeferraldetail
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-#======================================================
+#============================================================================================
 # Replace Placeholders with values -  MessageBounceDetailbyrelay
-#======================================================
+#============================================================================================
 sed -i "/##MessageBounceDetailbyrelay##/ {
 r ${TMPFOLDER}/messagebouncedetaibyrelay
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - warnings
-#======================================================
+#============================================================================================
 sed -i "/##MailWarnings##/ {
 r ${TMPFOLDER}/warnings
 d
-}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html 
+}" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-
-#======================================================
+#============================================================================================
 # Replace Placeholders with values - FatalErrors
-#======================================================
+#============================================================================================
 sed -i "/##MailFatalErrors##/ {
 r ${TMPFOLDER}/FatalErrors
 d
 }" $DATADIR/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.html
 
-
-
-
-#======================================================
+#============================================================================================
 # Count Existing Reports - For Dashboard Display
-#======================================================
+#============================================================================================
 JanRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Jan*.html" | wc -l)
 FebRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Feb*.html" | wc -l)
 MarRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Mar*.html" | wc -l)
@@ -1830,10 +1730,9 @@ OctRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Oct*.html" | wc -l)
 NovRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Nov*.html" | wc -l)
 DecRPTCount=$(find $DATADIR  -maxdepth 1 -type f -name "*-Dec*.html" | wc -l)
 
-
-#======================================================
+#============================================================================================
 # Replace Report Totals for Report - Index
-#======================================================
+#============================================================================================
 sed -i "s/##JanuaryCount##/$JanRPTCount/g" $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD
 sed -i "s/##FebruaryCount##/$FebRPTCount/g" $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD
 sed -i "s/##MarchCount##/$MarRPTCount/g" $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD
@@ -1850,10 +1749,9 @@ sed -i "s/##DecemberCount##/$DecRPTCount/g" $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASH
 sed -i "s/##REPORTDATE##/$REPORTDATE/g" $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD
 sed -i "s/##ACTIVEHOSTNAME##/$ACTIVEHOSTNAME/g" $HTMLOUTPUTDIR/$HTMLOUTPUT_INDEXDASHBOARD
 
-
-#======================================================
+#============================================================================================
 # Update Clickable Index Files (imported dynamicly)
-#======================================================
+#============================================================================================
 
 #Delete Exisitng File Indexs
 rm -fr $DATADIR/*_rpt.html
@@ -1862,7 +1760,7 @@ rm -fr $DATADIR/*_rpt.html
 for filename in $DATADIR/*.html; do
     filenameWithExtOnly="${filename##*/}"
     filenameWithoutExtension="${filenameWithExtOnly%.*}"
- 
+
     case $filenameWithExtOnly in
         *Jan* )
         echo "<a href=\"data/${filenameWithoutExtension}.html\" class=\"list-group-item list-group-item-action\">$filenameWithoutExtension</a>" >> $DATADIR/jan_rpt.html
@@ -1915,29 +1813,25 @@ for filename in $DATADIR/*.html; do
 done
 
 
-#======================================================
-# Save Raw log file
-#======================================================
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# COPY RAW FILE FOR SIMPLE STORAGE
 
-#Store raw file
 cp ${DAILY_REPORT} ${RAWDIR}/$CURRENTYEAR-$CURRENTMONTH-$CURRENTDAY.txt
 
 
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# PERFORM CLEAN UPS
 
-#======================================================
-# Clean UP
-#======================================================
-
-#Finally remove temp folder
+# Finally remove temp folder
 rm -Rf ${TMPFOLDER}
 
-#Perform a clean-up of files up to 1 year in RawDir
+# Perform a clean-up of files up to 1 year in RawDir
 find ${RAWDIR}/ -type f -mtime +365 -delete
 
-#Remove empty directories for RawDir
+# Remove empty directories for RawDir
 find ${RAWDIR}/ -type d -empty -delete
 
-#Perform a clean-up of files up to 1 year in DataDir
+# Perform a clean-up of files up to 1 year in DataDir
 find ${DATADIR}/ -type f -name "*.html" -mtime +365 | while read file
 do
 	filename="$(basename "${file}")"
