@@ -984,9 +984,15 @@ if(my $msgsTotal = $msgsDlvrd + $msgsRjctd + $msgsDscrdd) {
 }
 
 # Calculate percentage of local/remote deliveried
-my $msgsDlvrdRemotePct = int(($msgsDlvrdRemote/$msgsDlvrd) * 100);
-my $msgsDlvrdLocalPct = int(($msgsDlvrdLocal/$msgsDlvrd) * 100);
+my ($msgsDlvrdRemotePct, $msgsDlvrdLocalPct);
 
+if ($msgsDlvrd == 0) {
+    $msgsDlvrdRemotePct = 0;
+    $msgsDlvrdLocalPct = 0; 
+} else {
+    $msgsDlvrdRemotePct = int(($msgsDlvrdRemote / $msgsDlvrd) * 100);
+    $msgsDlvrdLocalPct = int(($msgsDlvrdLocal / $msgsDlvrd) * 100);
+}
 
 
 if(defined($dateStr)) {
