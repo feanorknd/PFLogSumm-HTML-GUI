@@ -149,7 +149,7 @@ fi
 # VALIDATE CURRENT DATE TO ANALYZE VS FILE
 
 # Just verificate that there are some log lines for specified
-if [ $(${MY_CAT} ${LOGFILE} | grep -i postfix | grep -P "^${CURRENTMONTH}\s+$(date --date "${MY_DATE}" +"%-d")" | wc -l) -eq 0 ]
+if [ $(${MY_CAT} ${LOGFILE} | grep -i -a postfix | grep -P -a "^${CURRENTMONTH}\s+$(date --date "${MY_DATE}" +"%-d")" | wc -l) -eq 0 ]
 then
 	echo "Specified '${LOGFILE}' seems to not include loglines for specified '${MY_DATE}' date."
 	echo "Aborting..."
