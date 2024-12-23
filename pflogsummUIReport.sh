@@ -57,7 +57,7 @@ if [[ -f "${LOGFILE}" ]]; then
 	filetype=$(file --mime-type -b "${LOGFILE}")
 	if [[ "${filetype}" == "application/gzip" ]]; then
 		MY_CAT="$(which zcat)"
-	elif [[ "${filetype}" == "text/plain" ]]; then
+	elif [[ "${filetype}" == "text/plain" ]] || [[ "${filetype}" == "application/csv" ]]; then
 		MY_CAT="$(which cat)"
 	else
 		echo "The file '${LOGFILE}' is of an unknown type: ${filetype}"
@@ -68,6 +68,7 @@ else
         echo "(Execute with --help)"
         exit 1
 fi
+
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 # MAIN VARIABLES
